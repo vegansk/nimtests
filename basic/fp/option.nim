@@ -5,7 +5,7 @@ type Option*[T] = object
   of true: value: T
   of false: discard
 
-proc `?`*[T](v: Option[T]): bool =
+converter toBool*[T](v: Option[T]): bool =
   if v.valid: true else: false
   
 proc some*[T](v: T): Option[T] =
@@ -14,16 +14,16 @@ proc none*[T](): Option[T] =
   Option[T](valid: false)
 
 proc map*[T,U](v: Option[T], f: T -> U): Option[U] =
-  if ?v: some f(v.value) else: none[U]()
+  if v: some f(v.value) else: none[U]()
 
 proc `>>=`*[T,U](v: Option[T], f: T -> Option[U]): Option[U] =
-  if ?v: f(v.value) else: none[U]()
+  if v: f(v.value) else: none[U]()
 
 proc `$`*[T](v: Option[T]): string =
-  if ?v: "Some[" & T.name & "](" & $v.value & ")" else: "None[" & T.name & "]()"
+  if v: "Some[" & T.name & "](" & $v.value & ")" else: "None[" & T.name & "]()"
 
 proc getOr*[T](v: Option[T], d: T): T =
-  if ?v: v.value else: d
+  if v: v.value else: d
 
 proc getOr*[T](v: Option[T], d: void -> T): T =
-  if ?v: v.value else: d()
+  if v: v.value else: d()
