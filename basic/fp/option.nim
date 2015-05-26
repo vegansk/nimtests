@@ -7,6 +7,12 @@ type Option*[T] = object
 
 converter toBool*[T](v: Option[T]): bool =
   if v.valid: true else: false
+
+template `?=`*[T](n: expr, v: Option[T]): bool =
+  var n{.inject.}: type(v.value)
+  if v:
+    n = v.value
+  v.valid
   
 proc some*[T](v: T): Option[T] =
   Option[T](valid: true, value: v)
