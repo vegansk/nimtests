@@ -12,6 +12,7 @@ iterator objfields(t: typedesc): (NimNode, NimNode) =
     yield (reclist[i], reclist[i].getType)
 
 macro genObjCons(T: typedesc): stmt =
+  echo T.getType().treeRepr()
   expectKind T.getType[1].getType, nnkObjectTy
   let name = ident("init" & $T.getType[1])
   var params = @[T.getType[1]]
