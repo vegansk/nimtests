@@ -14,8 +14,10 @@ type
       n: List[T] not nil
 
 proc Cons[T](head: T, tail: List[T]): List[T] = List[T](t: ListNodeType.Cons, v: head, n: tail)
+
 let gNil = List[int](t: ListNodeType.Nil)
 proc Nil[T](): List[T] = cast[List[T]](gNil)
+
 proc `$`[T](lst: List[T]): string =
   case lst.t
   of ListNodeType.Nil:
@@ -24,10 +26,17 @@ proc `$`[T](lst: List[T]): string =
     "Cons(" & $lst.v & ", " & $lst.n & ")"
 
 proc `^^`[T](v: T, lst: List[T]): List[T] = Cons(v, lst)
+
 proc `++`[T](x, y: List[T]): List[T] =
   case x.t
   of ListNodeType.Nil: y
   else: Cons(x.v, x.n ++ y)
+
+proc foldRight[T,U](xs: List[T], z: U, f: (T, U) -> U): U =
+  case xs.t
+  of ListNodeType.Nil: z
+  else:
+    f(xs.v, xs.n.foldRight(z, f))
 
 # Ex. 3.2
 proc tail[T](lst: List[T]): List[T] =
@@ -54,6 +63,17 @@ proc dropWhile[T](lst: List[T], p: T -> bool): List[T] =
   else:
     if not lst.v.p(): lst else: lst.tail.dropWhile(p)
 
+# Ex. 3.6
+proc init[T](lst: List[T]): List[T] =
+  case lst.t
+  of ListNodeType.Nil:
+    lst
+  else:
+    if lst.n == Nil[T]():
+      lst.n
+    else:
+      lst.v ^^ lst.tail.init
+
 when isMainModule:
   let lst = 1 ^^ 2 ^^ 3 ^^ 4 ^^ Nil[int]()
   echo lst
@@ -62,3 +82,5 @@ when isMainModule:
   echo lst.drop(3)
   echo lst.dropWhile(x => x < 3)
   echo lst ++ 33 ^^ 44 ^^ Nil[int]()
+  echo lst.init
+  echo lst.foldRight(0, (x, y) => x + y)
