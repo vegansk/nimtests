@@ -10,10 +10,9 @@ proc genXsd(v: XsdType[string]): XmlNode = <>string()
 
 echo XsdType[int] is XsdAware
 echo XsdType[string] is XsdAware
-echo XsdType[int]().genXsd()
-echo XsdType[string]().genXsd()
+echo XsdType[float] is XsdAware
 
-proc genXsdFor[T](): XmlNode = XsdType[T]().genXsd()
+proc genXsd[T](): XmlNode = XsdType[T]().genXsd()
 
-echo genXsdFor[int]()
-echo genXsdFor[string]()
+echo genXsd[int]()
+echo genXsd[string]()

@@ -1,7 +1,9 @@
 import macros, typetraits
 
-type Data = object
-  value: int
+## Test 2
+type Data* = object
+  ## Test comment
+  value*: int ## `value` lalala
   fvalue: float
 
 iterator objfields(t: typedesc): (NimNode, NimNode) =
@@ -12,7 +14,7 @@ iterator objfields(t: typedesc): (NimNode, NimNode) =
     yield (reclist[i], reclist[i].getType)
 
 macro genObjCons(T: typedesc): stmt =
-  echo T.getType().treeRepr()
+  echo T.getType[1].getType.treeRepr()
   expectKind T.getType[1].getType, nnkObjectTy
   let name = ident("init" & $T.getType[1])
   var params = @[T.getType[1]]
@@ -25,6 +27,6 @@ macro genObjCons(T: typedesc): stmt =
   let procDef = newProc(name, params, body)
   result = newStmtList procDef
 
-Data.genObjCons
+Data.genObjCons()
 
 echo initData(1, 2)
