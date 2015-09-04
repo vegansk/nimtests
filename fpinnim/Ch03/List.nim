@@ -1,4 +1,4 @@
-import future, sequtils
+import future
 
 {.experimental.}
 
@@ -106,6 +106,13 @@ proc lengthViaFoldLeft[T](lst: List[T]): int = lst.foldLeft(0.T, (x: int, _: T) 
 # Ex. 3.12
 proc reverse[T](lst: List[T]): List[T] = lst.foldLeft(Nil[T](), (xs: List[T], x: T) => Cons(x, xs))
 
+# Ex. 3.13
+proc foldLeftViaRight[T,U](lst: List[T], z: U, f: (U, T) -> U): U =
+  foldRight[T, U -> U](lst, (b: U) => b, (x: T, g: U -> U) => ((b: U) => g(f(b, x))))(z)
+  
+proc foldRightViaLeft[T,U](lst: List[T], z: U, f: (T, U) -> U): U =
+  foldLeft[T, U -> U](lst, (b: U) => b, (g: U -> U, x: T) => ((b: U) => g(f(x, b))))(z)
+
 when isMainModule:
   let lst = [1,2,3,4,5,6,7].initList
   echo lst
@@ -122,3 +129,7 @@ when isMainModule:
   echo lst.productViaFoldLeft
   echo lst.lengthViaFoldLeft
   echo lst.reverse
+  echo lst.foldLeftViaRight(0, (x, _) => x + 1)
+  echo(initList("a", "b", "c").foldLeftViaRight(0, (x, _) => x + 1))
+  echo lst.foldRightViaLeft(0, (_, x) => x + 1)
+  echo(initList("a", "b", "c").foldRightViaLeft(0, (_, x) => x + 1))
