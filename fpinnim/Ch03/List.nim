@@ -116,6 +116,9 @@ proc foldRightViaLeft[T,U](xs: List[T], z: U, f: (T, U) -> U): U =
 # Ex. 3.14
 proc append[T](xs: List[T], ys: List[T]): List[T] = xs.foldRight(ys, (x: T, xs: List[T]) => Cons(x, xs))
 
+# Ex. 3.15
+proc join[T](xs: List[List[T]]): List[T] = xs.foldRight(Nil[T](), append)
+
 when isMainModule:
   let xs = [1,2,3,4,5,6,7].initList
   echo xs
@@ -137,3 +140,4 @@ when isMainModule:
   echo xs.foldRightViaLeft(0, (_, x) => x + 1)
   echo(initList("a", "b", "c").foldRightViaLeft(0, (_, x) => x + 1))
   echo([1, 2, 3].initList.append([4, 5, 6].initList))
+  echo([[1, 2, 3].initList, [4, 5, 6].initList].initList.join)
