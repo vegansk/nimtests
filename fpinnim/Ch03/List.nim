@@ -132,6 +132,12 @@ proc filter[T](xs: List[T], p: T -> bool): List[T] =
   else:
     if p(xs.v): Cons(xs.v, filter(xs.n, p)) else: filter(xs.n, p)
 
+# Ex. 3.20
+proc flatMap[T,U](xs: List[T], f: T -> List[U]): List[U] = xs.map(f).join
+
+# Ex. 3.21
+proc filterViaFlatMap[T](xs: List[T], p: T -> bool): List[T] = xs.flatMap((x: T) => (if p(x): Cons(x, Nil[T]()) else: Nil[T]()))
+
 when isMainModule:
   let xs = [1,2,3,4,5,6,7].initList
   echo xs
@@ -156,3 +162,5 @@ when isMainModule:
   echo([[1, 2, 3].initList, [4, 5, 6].initList].initList.join)
   echo([1, 2, 3].initList.map((x: int) => "Value" & $x))
   echo([1, 2, 3, 4].initList.filter(x => x mod 2 != 0))
+  echo([1, 2, 3].initList.flatMap((x: int) => [x, x].initList))
+  echo([1, 2, 3, 4].initList.filterViaFlatMap(x => x mod 2 != 0))
