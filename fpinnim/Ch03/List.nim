@@ -1,4 +1,4 @@
-import future
+import future, sequtils
 
 {.experimental.}
 
@@ -18,6 +18,14 @@ proc Cons[T](head: T, tail: List[T]): List[T] = List[T](t: ListNodeType.Cons, v:
 let gNil = List[int](t: ListNodeType.Nil)
 proc Nil[T](): List[T] = cast[List[T]](gNil)
 
+proc initList[T](xs: varargs[T]): List[T] =
+  proc initListImpl(i: int, xs: openarray[T]): List[T] =
+    if i > high(xs):
+      Nil[T]()
+    else:
+        Cons(xs[i], initListImpl(i+1, xs))
+  initListImpl(0, xs)
+  
 proc `$`[T](lst: List[T]): string =
   case lst.t
   of ListNodeType.Nil:
@@ -74,8 +82,12 @@ proc init[T](lst: List[T]): List[T] =
     else:
       lst.v ^^ lst.tail.init
 
+# Ex. 3.8
+
+
 when isMainModule:
-  let lst = 1 ^^ 2 ^^ 3 ^^ 4 ^^ Nil[int]()
+  let lst = initList(1,2,3,4,5,6,7)
+  # let lst = 1 ^^ 2 ^^ 3 ^^ 4 ^^ Nil[int]()
   echo lst
   echo lst.tail.tail
   echo lst.setList(100)
