@@ -138,6 +138,13 @@ proc flatMap[T,U](xs: List[T], f: T -> List[U]): List[U] = xs.map(f).join
 # Ex. 3.21
 proc filterViaFlatMap[T](xs: List[T], p: T -> bool): List[T] = xs.flatMap((x: T) => (if p(x): Cons(x, Nil[T]()) else: Nil[T]()))
 
+# Ex. 3.23
+proc zipWith[T,U,V](xs: List[T], ys: List[U], f: (T,U) -> V): List[V] =
+  if xs.t == ListNodeType.Nil or ys.t == ListNodeType.Nil:
+    Nil[V]()
+  else:
+    Cons(f(xs.v, ys.v), zipWith(xs.n, ys.n, f))
+
 when isMainModule:
   let xs = [1,2,3,4,5,6,7].initList
   echo xs
@@ -164,3 +171,4 @@ when isMainModule:
   echo([1, 2, 3, 4].initList.filter(x => x mod 2 != 0))
   echo([1, 2, 3].initList.flatMap((x: int) => [x, x].initList))
   echo([1, 2, 3, 4].initList.filterViaFlatMap(x => x mod 2 != 0))
+  echo(zipWith([1, 2, 3].initList, [4, 5, 6, 7].initList, (x: int, y: int) => x + y))
