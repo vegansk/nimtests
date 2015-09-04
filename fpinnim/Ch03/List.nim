@@ -84,6 +84,25 @@ proc init[T](lst: List[T]): List[T] =
 # Ex. 3.8
 proc dup[T](lst: List[T]): List[T] = lst.foldRight(Nil[T](), (x: T, xs: List[T]) => Cons(x, xs))
 
+# Ex. 3.9
+proc length[T](lst: List[T]): int = lst.foldRight(0, (_: T, x: int) => x+1)
+
+# Ex. 3.10
+proc foldLeft[T,U](lst: List[T], z: U, f: (U, T) -> U): U =
+  case lst.t
+  of ListNodeType.Nil: z
+  else:
+    foldLeft(lst.n, f(z, lst.v), f)
+
+# Ex. 3.11
+type
+  Number = concept x, y
+    x + y is type(x)
+    x * y is type(x)
+proc sumViaFoldLeft[T: Number](lst: List[T]): T = lst.foldLeft(0.T, (x: T, y: T) => x + y)
+proc productViaFoldLeft[T: Number](lst: List[T]): T = lst.foldLeft(1.T, (x: T, y: T) => x * y)
+proc lengthViaFoldLeft[T](lst: List[T]): int = lst.foldLeft(0.T, (x: int, _: T) => x + 1)
+
 when isMainModule:
   let lst = [1,2,3,4,5,6,7].initList
   echo lst
@@ -95,3 +114,7 @@ when isMainModule:
   echo lst.init
   echo lst.foldRight(0, (x, y) => x + y)
   echo lst.dup
+  echo lst.length
+  echo lst.sumViaFoldLeft
+  echo lst.productViaFoldLeft
+  echo lst.lengthViaFoldLeft
