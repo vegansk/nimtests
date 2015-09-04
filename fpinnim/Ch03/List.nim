@@ -103,6 +103,9 @@ proc sumViaFoldLeft[T: Number](lst: List[T]): T = lst.foldLeft(0.T, (x: T, y: T)
 proc productViaFoldLeft[T: Number](lst: List[T]): T = lst.foldLeft(1.T, (x: T, y: T) => x * y)
 proc lengthViaFoldLeft[T](lst: List[T]): int = lst.foldLeft(0.T, (x: int, _: T) => x + 1)
 
+# Ex. 3.12
+proc reverse[T](lst: List[T]): List[T] = lst.foldLeft(Nil[T](), (xs: List[T], x: T) => Cons(x, xs))
+
 when isMainModule:
   let lst = [1,2,3,4,5,6,7].initList
   echo lst
@@ -118,3 +121,4 @@ when isMainModule:
   echo lst.sumViaFoldLeft
   echo lst.productViaFoldLeft
   echo lst.lengthViaFoldLeft
+  echo lst.reverse
