@@ -25,14 +25,14 @@ proc initList[T](xs: varargs[T]): List[T] =
         Cons(xs[i], initListImpl(i+1, xs))
   initListImpl(0, xs)
   
-proc `$`[T](lst: List[T]): string =
-  case lst.t
+proc `$`[T](xs: List[T]): string =
+  case xs.t
   of ListNodeType.Nil:
     "Nil"
   of ListNodeType.Cons:
-    "Cons(" & $lst.v & ", " & $lst.n & ")"
+    "Cons(" & $xs.v & ", " & $xs.n & ")"
 
-proc `^^`[T](v: T, lst: List[T]): List[T] = Cons(v, lst)
+proc `^^`[T](v: T, xs: List[T]): List[T] = Cons(v, xs)
 
 proc `++`[T](x, y: List[T]): List[T] =
   case x.t
@@ -46,90 +46,94 @@ proc foldRight[T,U](xs: List[T], z: U, f: (T, U) -> U): U =
     f(xs.v, xs.n.foldRight(z, f))
 
 # Ex. 3.2
-proc tail[T](lst: List[T]): List[T] =
-  case lst.t
+proc tail[T](xs: List[T]): List[T] =
+  case xs.t
   of ListNodeType.Cons:
-    lst.n
+    xs.n
   else:
     Nil[T]()
 
 # Ex. 3.3
-proc setList[T](lst: List[T], v: T): List[T] = Cons(v, lst.tail)
+proc setList[T](xs: List[T], v: T): List[T] = Cons(v, xs.tail)
 
 # Ex. 3.4
-proc drop[T](lst: List[T], n: int): List[T] =
-  case lst.t
-  of ListNodeType.Nil: lst
+proc drop[T](xs: List[T], n: int): List[T] =
+  case xs.t
+  of ListNodeType.Nil: xs
   else:
-    if n == 0: lst else: lst.tail.drop(n - 1)
+    if n == 0: xs else: xs.tail.drop(n - 1)
 
 # Ex. 3.5
-proc dropWhile[T](lst: List[T], p: T -> bool): List[T] =
-  case lst.t
-  of ListNodeType.Nil: lst
+proc dropWhile[T](xs: List[T], p: T -> bool): List[T] =
+  case xs.t
+  of ListNodeType.Nil: xs
   else:
-    if not lst.v.p(): lst else: lst.tail.dropWhile(p)
+    if not xs.v.p(): xs else: xs.tail.dropWhile(p)
 
 # Ex. 3.6
-proc init[T](lst: List[T]): List[T] =
-  case lst.t
+proc init[T](xs: List[T]): List[T] =
+  case xs.t
   of ListNodeType.Nil:
-    lst
+    xs
   else:
-    if lst.n.t == ListNodeType.Nil:
-      lst.n
+    if xs.n.t == ListNodeType.Nil:
+      xs.n
     else:
-      lst.v ^^ lst.tail.init
+      xs.v ^^ xs.tail.init
 
 # Ex. 3.8
-proc dup[T](lst: List[T]): List[T] = lst.foldRight(Nil[T](), (x: T, xs: List[T]) => Cons(x, xs))
+proc dup[T](xs: List[T]): List[T] = xs.foldRight(Nil[T](), (x: T, xs: List[T]) => Cons(x, xs))
 
 # Ex. 3.9
-proc length[T](lst: List[T]): int = lst.foldRight(0, (_: T, x: int) => x+1)
+proc length[T](xs: List[T]): int = xs.foldRight(0, (_: T, x: int) => x+1)
 
 # Ex. 3.10
-proc foldLeft[T,U](lst: List[T], z: U, f: (U, T) -> U): U =
-  case lst.t
+proc foldLeft[T,U](xs: List[T], z: U, f: (U, T) -> U): U =
+  case xs.t
   of ListNodeType.Nil: z
   else:
-    foldLeft(lst.n, f(z, lst.v), f)
+    foldLeft(xs.n, f(z, xs.v), f)
 
 # Ex. 3.11
 type
   Number = concept x, y
     x + y is type(x)
     x * y is type(x)
-proc sumViaFoldLeft[T: Number](lst: List[T]): T = lst.foldLeft(0.T, (x: T, y: T) => x + y)
-proc productViaFoldLeft[T: Number](lst: List[T]): T = lst.foldLeft(1.T, (x: T, y: T) => x * y)
-proc lengthViaFoldLeft[T](lst: List[T]): int = lst.foldLeft(0.T, (x: int, _: T) => x + 1)
+proc sumViaFoldLeft[T: Number](xs: List[T]): T = xs.foldLeft(0.T, (x: T, y: T) => x + y)
+proc productViaFoldLeft[T: Number](xs: List[T]): T = xs.foldLeft(1.T, (x: T, y: T) => x * y)
+proc lengthViaFoldLeft[T](xs: List[T]): int = xs.foldLeft(0.T, (x: int, _: T) => x + 1)
 
 # Ex. 3.12
-proc reverse[T](lst: List[T]): List[T] = lst.foldLeft(Nil[T](), (xs: List[T], x: T) => Cons(x, xs))
+proc reverse[T](xs: List[T]): List[T] = xs.foldLeft(Nil[T](), (xs: List[T], x: T) => Cons(x, xs))
 
 # Ex. 3.13
-proc foldLeftViaRight[T,U](lst: List[T], z: U, f: (U, T) -> U): U =
-  foldRight[T, U -> U](lst, (b: U) => b, (x: T, g: U -> U) => ((b: U) => g(f(b, x))))(z)
+proc foldLeftViaRight[T,U](xs: List[T], z: U, f: (U, T) -> U): U =
+  foldRight[T, U -> U](xs, (b: U) => b, (x: T, g: U -> U) => ((b: U) => g(f(b, x))))(z)
   
-proc foldRightViaLeft[T,U](lst: List[T], z: U, f: (T, U) -> U): U =
-  foldLeft[T, U -> U](lst, (b: U) => b, (g: U -> U, x: T) => ((b: U) => g(f(x, b))))(z)
+proc foldRightViaLeft[T,U](xs: List[T], z: U, f: (T, U) -> U): U =
+  foldLeft[T, U -> U](xs, (b: U) => b, (g: U -> U, x: T) => ((b: U) => g(f(x, b))))(z)
+
+# Ex. 3.14
+proc append[T](xs: List[T], ys: List[T]): List[T] = xs.foldRight(ys, (x: T, xs: List[T]) => Cons(x, xs))
 
 when isMainModule:
-  let lst = [1,2,3,4,5,6,7].initList
-  echo lst
-  echo lst.tail.tail
-  echo lst.setList(100)
-  echo lst.drop(3)
-  echo lst.dropWhile(x => x < 3)
-  echo lst ++ 33 ^^ 44 ^^ Nil[int]() ++ initList(100, 200, 300) ++ @[32,32,32].initList
-  echo lst.init
-  echo lst.foldRight(0, (x, y) => x + y)
-  echo lst.dup
-  echo lst.length
-  echo lst.sumViaFoldLeft
-  echo lst.productViaFoldLeft
-  echo lst.lengthViaFoldLeft
-  echo lst.reverse
-  echo lst.foldLeftViaRight(0, (x, _) => x + 1)
+  let xs = [1,2,3,4,5,6,7].initList
+  echo xs
+  echo xs.tail.tail
+  echo xs.setList(100)
+  echo xs.drop(3)
+  echo xs.dropWhile(x => x < 3)
+  echo xs ++ 33 ^^ 44 ^^ Nil[int]() ++ initList(100, 200, 300) ++ @[32,32,32].initList
+  echo xs.init
+  echo xs.foldRight(0, (x, y) => x + y)
+  echo xs.dup
+  echo xs.length
+  echo xs.sumViaFoldLeft
+  echo xs.productViaFoldLeft
+  echo xs.lengthViaFoldLeft
+  echo xs.reverse
+  echo xs.foldLeftViaRight(0, (x, _) => x + 1)
   echo(initList("a", "b", "c").foldLeftViaRight(0, (x, _) => x + 1))
-  echo lst.foldRightViaLeft(0, (_, x) => x + 1)
+  echo xs.foldRightViaLeft(0, (_, x) => x + 1)
   echo(initList("a", "b", "c").foldRightViaLeft(0, (_, x) => x + 1))
+  echo([1, 2, 3].initList.append([4, 5, 6].initList))
