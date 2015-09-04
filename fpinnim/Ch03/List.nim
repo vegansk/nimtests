@@ -15,8 +15,7 @@ type
 
 proc Cons[T](head: T, tail: List[T]): List[T] = List[T](t: ListNodeType.Cons, v: head, n: tail)
 
-let gNil = List[int](t: ListNodeType.Nil)
-proc Nil[T](): List[T] = cast[List[T]](gNil)
+proc Nil[T](): List[T] = List[T](t: ListNodeType.Nil)
 
 proc initList[T](xs: varargs[T]): List[T] =
   proc initListImpl(i: int, xs: openarray[T]): List[T] =
@@ -77,22 +76,22 @@ proc init[T](lst: List[T]): List[T] =
   of ListNodeType.Nil:
     lst
   else:
-    if lst.n == Nil[T]():
+    if lst.n.t == ListNodeType.Nil:
       lst.n
     else:
       lst.v ^^ lst.tail.init
 
 # Ex. 3.8
-
+proc dup[T](lst: List[T]): List[T] = lst.foldRight(Nil[T](), (x: T, xs: List[T]) => Cons(x, xs))
 
 when isMainModule:
-  let lst = initList(1,2,3,4,5,6,7)
-  # let lst = 1 ^^ 2 ^^ 3 ^^ 4 ^^ Nil[int]()
+  let lst = [1,2,3,4,5,6,7].initList
   echo lst
   echo lst.tail.tail
   echo lst.setList(100)
   echo lst.drop(3)
   echo lst.dropWhile(x => x < 3)
-  echo lst ++ 33 ^^ 44 ^^ Nil[int]()
+  echo lst ++ 33 ^^ 44 ^^ Nil[int]() ++ initList(100, 200, 300) ++ @[32,32,32].initList
   echo lst.init
   echo lst.foldRight(0, (x, y) => x + y)
+  echo lst.dup

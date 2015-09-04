@@ -1,3 +1,4 @@
+import future
 {.experimental.}
 
 type
@@ -29,5 +30,16 @@ proc initList[T](xs: varargs[T]): List[T] =
         Cons(xs[i], initListImpl(i+1, xs))
   initListImpl(0, xs)
   
+proc foldRight[T,U](xs: List[T], z: U, f: (T, U) -> U): U =
+  case xs.t
+  of ListNodeType.Nil: z
+  else:
+    f(xs.v, xs.n.foldRight(z, f))
+
+proc dup[T](lst: List[T]): List[T] = lst.foldRight(Nil[T](), (x: T, xs: List[T]) => Cons(x, xs))
+
 when isMainModule:
-  echo(initList(1,2,3,4,5))
+  let lst = initList(1,2,3,4,5)
+  echo lst
+  echo lst.foldRight(0, (x, y) => x + y)
+  echo lst.dup()
