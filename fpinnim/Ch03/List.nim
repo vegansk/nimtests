@@ -119,6 +119,19 @@ proc append[T](xs: List[T], ys: List[T]): List[T] = xs.foldRight(ys, (x: T, xs: 
 # Ex. 3.15
 proc join[T](xs: List[List[T]]): List[T] = xs.foldRight(Nil[T](), append)
 
+# Ex. 3.18
+proc map[T, U](xs: List[T], f: T -> U): List[U] =
+  case xs.t
+  of ListNodeType.Nil: Nil[U]()
+  else: Cons(f(xs.v), map(xs.n, f))
+
+# Ex. 3.19
+proc filter[T](xs: List[T], p: T -> bool): List[T] =
+  case xs.t
+  of ListNodeType.Nil: xs
+  else:
+    if p(xs.v): Cons(xs.v, filter(xs.n, p)) else: filter(xs.n, p)
+
 when isMainModule:
   let xs = [1,2,3,4,5,6,7].initList
   echo xs
@@ -141,3 +154,5 @@ when isMainModule:
   echo(initList("a", "b", "c").foldRightViaLeft(0, (_, x) => x + 1))
   echo([1, 2, 3].initList.append([4, 5, 6].initList))
   echo([[1, 2, 3].initList, [4, 5, 6].initList].initList.join)
+  echo([1, 2, 3].initList.map((x: int) => "Value" & $x))
+  echo([1, 2, 3, 4].initList.filter(x => x mod 2 != 0))
