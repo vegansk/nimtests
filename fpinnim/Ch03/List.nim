@@ -145,6 +145,18 @@ proc zipWith[T,U,V](xs: List[T], ys: List[U], f: (T,U) -> V): List[V] =
   else:
     Cons(f(xs.v, ys.v), zipWith(xs.n, ys.n, f))
 
+# Ex. 3.24
+proc hasSequence[T](xs: List[T], ys: List[T]): bool =
+  proc skip(): List[T] = xs.dropWhile(x => x != ys.v)
+  proc cmp(xs: List[T], ys: List[T]): bool =
+    if ys.t == ListNodeType.Nil:
+      true
+    elif xs.t == ListNodeType.Nil or xs.v != ys.v:
+      false
+    else:
+      cmp(xs.tail, ys.tail)
+  skip().cmp(ys)
+
 when isMainModule:
   let xs = [1,2,3,4,5,6,7].initList
   echo xs
@@ -172,3 +184,4 @@ when isMainModule:
   echo([1, 2, 3].initList.flatMap((x: int) => [x, x].initList))
   echo([1, 2, 3, 4].initList.filterViaFlatMap(x => x mod 2 != 0))
   echo(zipWith([1, 2, 3].initList, [4, 5, 6, 7].initList, (x: int, y: int) => x + y))
+  echo([1, 2, 3, 4, 5].initList.hasSequence([3, 4].initList))
