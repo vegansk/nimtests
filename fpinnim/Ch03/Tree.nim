@@ -27,8 +27,19 @@ proc size(t: Tree): int =
   of tnkLeaf: 1
   else: 1 + size(t.left) + size(t.right)
 
+# Ex. 3.26
+type
+  Number = concept x, y
+    x.max(y) is Number
+
+proc maximum[T: Number](t: Tree[T]): T =
+  case t.kind
+  of tnkLeaf: t.value
+  else: t.left.maximum.max(t.right.maximum)
+
 when isMainModule:
   let tree = Branch(Branch(Leaf(1), Leaf(2)), Branch(Leaf(3), Branch(Leaf(4), Leaf(5))))
 
   echo tree
   echo tree.size()
+  echo tree.maximum()
