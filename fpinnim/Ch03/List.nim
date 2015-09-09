@@ -145,6 +145,17 @@ proc zipWith[T,U,V](xs: List[T], ys: List[U], f: (T,U) -> V): List[V] =
   else:
     Cons(f(xs.v, ys.v), zipWith(xs.n, ys.n, f))
 
+# Ex. 3.24
+proc hasSubsequence[T](xs: List[T], ys: List[T]): bool =
+  if ys.t == ListNodeType.Nil:
+    true
+  elif xs.t == ListNodeType.Nil:
+    false
+  elif xs.v == ys.v:
+    xs.tail.hasSubsequence(ys.tail)
+  else:
+    xs.tail.hasSubsequence(ys)
+
 when isMainModule:
   let xs = [1,2,3,4,5,6,7].initList
   echo xs
@@ -172,3 +183,4 @@ when isMainModule:
   echo([1, 2, 3].initList.flatMap((x: int) => [x, x].initList))
   echo([1, 2, 3, 4].initList.filterViaFlatMap(x => x mod 2 != 0))
   echo(zipWith([1, 2, 3].initList, [4, 5, 6, 7].initList, (x: int, y: int) => x + y))
+  echo([1,2,3,4,5].initList.hasSubsequence([3,4,5].initList))
