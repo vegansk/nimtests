@@ -33,9 +33,16 @@ proc maximum[T: SomeNumber](t: Tree[T]): T =
   of tnkLeaf: t.value
   else: t.left.maximum.max(t.right.maximum)
 
+# Ex. 3.27
+proc depth(t: Tree): int =
+  case t.kind
+  of tnkLeaf: 1
+  else: 1 + max(t.left.depth, t.right.depth)
+
 when isMainModule:
   let tree = Branch(Branch(Leaf(1), Leaf(2)), Branch(Leaf(3), Branch(Leaf(4), Leaf(5))))
 
   echo tree
   echo tree.size()
   echo tree.maximum()
+  echo tree.depth()
