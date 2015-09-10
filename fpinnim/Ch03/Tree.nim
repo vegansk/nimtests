@@ -39,10 +39,30 @@ proc depth(t: Tree): int =
   of tnkLeaf: 1
   else: 1 + max(t.left.depth, t.right.depth)
 
+# Ex. 3.28
+proc map[T,U](t: Tree[T], f: T -> U): Tree[U] =
+  case t.kind
+  of tnkLeaf: Leaf(t.value.f)
+  else: Branch(t.left.map(f), t.right.map(f))
+
+# Ex. 3.29
+proc fold[T,U](t: Tree[T], f: T -> U, g: (U, U) -> U): U =
+  case t.kind
+  of tnkLeaf: f(t.value)
+  else: g(t.left.fold(f, g), t.right.fold(f, g))
+
+# With current nim version, we can't use type class Tree here
+proc sizeViaFold[T](t: Tree[T]): int = t.fold((_: T) => 1, (x: int, y: int) => 1 + x + y)
+proc maximumViaFold[T: SomeNumber](t: Tree[T]): T = t.fold((_: T) => _, (x: T, y: T) => x.max(y))
+proc depthViaFold[T](t: Tree[T]): int = t.fold((_: T) => 1, (x: int, y: int) => 1 + x.max(y))
+proc mapViaFold[T,U](t: Tree[T], f: T -> U): Tree[U] = t.fold((_: T) => Leaf(f(_)), (x: Tree[U], y: Tree[U]) => Branch(x, y))
+
 when isMainModule:
   let tree = Branch(Branch(Leaf(1), Leaf(2)), Branch(Leaf(3), Branch(Leaf(4), Leaf(5))))
 
-  echo tree
-  echo tree.size()
-  echo tree.maximum()
-  echo tree.depth()
+  echo "Here is the tree: ", tree
+  echo "It's size is ", tree.size, " or ", tree.sizeViaFold
+  echo "It's maximum is ", tree.maximum, " or ", tree.maximumViaFold
+  echo "It's depth is ", tree.depth, " or ", tree.depthViaFold
+  echo "Map can be like this:\n  ", tree.map((x: int) => "Value" & $x)
+  echo "Or this:\n  ", tree.mapViaFold((x: int) => "Value" & $x)
