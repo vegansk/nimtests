@@ -20,6 +20,11 @@ proc Leaf[T](value: T): Tree[T] = Tree[T](kind: tnkLeaf, value: value)
       
 proc Branch[T](left, right: Tree[T]): Tree[T] = Tree[T](kind: tnkBranch, left: left, right: right)
 
+proc `==`[T](x, y: Tree[T]): bool =
+  if (x.kind, y.kind) == (tnkLeaf, tnkLeaf): x.value == y.value
+  elif (x.kind, y.kind) == (tnkBranch, tnkBranch): x.left == y.left and x.right == y.right
+  else: false
+
 proc `$`(t: Tree): string =
   case t.kind
   of tnkLeaf: "Leaf(" & $t.value & ")"
@@ -65,6 +70,7 @@ when isMainModule:
   let tree = Branch(Branch(Leaf(1), Leaf(2)), Branch(Leaf(3), Branch(Leaf(4), Leaf(5))))
 
   echo "Here is the tree: ", tree
+  echo "It equals with the same tree: ", tree == Branch(Branch(Leaf(1), Leaf(2)), Branch(Leaf(3), Branch(Leaf(4), Leaf(5))))
   echo "It's size is ", tree.size, " or ", tree.sizeViaFold
   echo "It's maximum is ", tree.maximum, " or ", tree.maximumViaFold
   echo "It's depth is ", tree.depth, " or ", tree.depthViaFold

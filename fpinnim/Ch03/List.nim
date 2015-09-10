@@ -22,6 +22,11 @@ proc Cons[T](head: T, tail: List[T]): List[T] = List[T](t: ListNodeType.Cons, v:
 
 proc Nil[T](): List[T] = List[T](t: ListNodeType.Nil)
 
+proc `==`[T](x, y: List[T]): bool =
+  if (x.t, y.t) == (ListNodeType.Nil, ListNodeType.Nil): true
+  elif (x.t, y.t) == (ListNodeType.Cons, ListNodeType.Cons): x.v == y.v and x.n == y.n
+  else: false
+
 proc initList[T](xs: varargs[T]): List[T] =
   proc initListImpl(i: int, xs: openarray[T]): List[T] =
     if i > high(xs):
@@ -164,6 +169,8 @@ proc hasSubsequence[T](xs: List[T], ys: List[T]): bool =
 when isMainModule:
   let xs = [1,2,3,4,5,6,7].initList
   echo xs
+  echo Nil[int]() == Nil[int]()
+  echo xs == [1,2,3,4,5,6,6].initList
   echo xs.tail.tail
   echo xs.setList(100)
   echo xs.drop(3)
