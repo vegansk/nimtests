@@ -22,6 +22,7 @@ proc None[T](): Option[T] = Option[T](kind: okNone)
 
 proc some[T](value: T): Option[T] = Some(value)
 proc none[T](value: T): Option[T] = None[T]()
+proc none(T: typedesc): Option[T] = None[T]()
 
 
 proc `==`[T](x, y: Option[T]): bool =
@@ -71,6 +72,7 @@ when isMainModule:
   echo n.isEmpty, " ", n
   echo "Hello, world".some
   echo "Hello, world".none
+  echo string.none
   echo 12345.some.map((x: int) => "Value is " & $x)
   echo 12.some.flatMap((x: int) => (x * 3).some)
   echo "".none.getOrElse(() => "Lalala")
