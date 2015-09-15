@@ -1,4 +1,4 @@
-import future
+import future, unittest
 {.experimental.}
 
 type
@@ -14,6 +14,18 @@ type
 
 proc Cons[T](head: T, tail: List[T]): List[T] = List[T](t: ListNodeType.Cons, v: head, n: tail)
 proc Nil[T](): List[T] = List[T](t: ListNodeType.Nil)
+
+proc isEmpty(l: List): bool = l.t == ListNodeType.Nil
+
+proc `==`[T](x, y: List[T]): bool =
+  # if (x.t, y.t) == (ListNodeType.Nil, ListNodeType.Nil): true
+  # elif (x.t, y.t) == (ListNodeType.Cons, ListNodeType.Cons): x.v == y.v and x.n == y.n
+  # else: false
+  if (x.isEmpty, y.isEmpty) == (true, true): true
+  elif (x.isEmpty, y.isEmpty) == (false, false): x.v == y.v and x.n == y.n
+  else: false
+
+proc `^^`[T](v: T, xs: List[T]): List[T] = Cons(v, xs)
 
 proc `$`[T](lst: List[T]): string =
   case lst.t
@@ -38,8 +50,7 @@ proc foldRight[T,U](xs: List[T], z: U, f: (T, U) -> U): U =
 
 proc dup[T](lst: List[T]): List[T] = lst.foldRight(Nil[T](), (x: T, xs: List[T]) => Cons(x, xs))
 
-when isMainModule:
-  let lst = initList(1,2,3,4,5)
-  echo lst
-  echo lst.foldRight(0, (x, y) => x + y)
-  echo lst.dup()
+suite "Test":
+  test "Test":
+
+    check: "1"^^"2"^^Nil[string]() == ["1", "2"].initList

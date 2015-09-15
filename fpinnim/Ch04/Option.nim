@@ -64,6 +64,9 @@ proc filter[T](o: Option[T], p: T -> bool): Option[T] =
   else:
     None[T]()
 
+# Ex. 4.2
+proc mean(xs)
+
 when isMainModule:
   let s = Some(123)
   let n = None[int]()
