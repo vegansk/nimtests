@@ -2,7 +2,7 @@
 # Exercises from "Functional programming in scala" transated to Nim
 #
 
-import future
+import future, fp/List as list, math
 
 {.experimental.}
 {.warning[TypelessParam]: off.}
@@ -10,7 +10,7 @@ import future
 type
   OptionKind = enum
     okNone, okSome
-  Option[T] = object
+  Option[T] = ref object
     case kind: OptionKind
     of okNone:
       discard
@@ -65,7 +65,16 @@ proc filter[T](o: Option[T], p: T -> bool): Option[T] =
     None[T]()
 
 # Ex. 4.2
-proc mean(xs)
+proc mean[T: SomeNumber](xs: List[T]): Option[T] =
+  if xs.isEmpty: 
+    T.none
+  else:
+    Some(xs.foldRight(0.T, (x: T, y: T) => x + y) / xs.length.T)
+
+type ListOpt[T] = Option[List[T]]
+
+proc variance[T: SomeNumber](xs: List[T]): Option[List[T]] =
+  xs.mean.flatMap((m: T) => xs.map((x: T) => pow(x - m, 2)).some)
 
 when isMainModule:
   let s = Some(123)
@@ -81,3 +90,6 @@ when isMainModule:
   echo "".none.getOrElse(() => "Lalala")
   echo "".none.orElse(() => "Lalala".some)
   echo 12.some.filter(x => x < 5)
+  let lst = @[1.float, 2, 3, 4, 5].asList
+  echo "Mean of ", lst, " is ", lst.mean()
+  echo "Variance of ", lst, " is ", lst.variance()
