@@ -71,8 +71,6 @@ proc mean[T: SomeNumber](xs: List[T]): Option[T] =
   else:
     Some(xs.foldRight(0.T, (x: T, y: T) => x + y) / xs.length.T)
 
-type ListOpt[T] = Option[List[T]]
-
 proc variance[T: SomeNumber](xs: List[T]): Option[List[T]] =
   xs.mean.flatMap((m: T) => xs.map((x: T) => pow(x - m, 2)).some)
 
