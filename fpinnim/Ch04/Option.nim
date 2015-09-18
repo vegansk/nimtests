@@ -71,8 +71,8 @@ proc mean[T: SomeNumber](xs: List[T]): Option[T] =
   else:
     Some(xs.foldRight(0.T, (x: T, y: T) => x + y) / xs.length.T)
 
-proc variance[T: SomeNumber](xs: List[T]): Option[List[T]] =
-  xs.mean.flatMap((m: T) => xs.map((x: T) => pow(x - m, 2)).some)
+proc variance[T: SomeNumber](xs: List[T]): Option[T] =
+  xs.mean.flatMap((m: T) => xs.map((x: T) => pow(x - m, 2)).mean)
 
 when isMainModule:
   let s = Some(123)
@@ -83,7 +83,7 @@ when isMainModule:
   echo "Hello, world".some
   echo "Hello, world".none
   echo string.none
-  echo 12345.some.map((x: int) => "Value is " & $x)
+  echo 12345.some.map(x => "Value is " & $x)
   echo 12.some.flatMap((x: int) => (x * 3).some)
   echo "".none.getOrElse(() => "Lalala")
   echo "".none.orElse(() => "Lalala".some)
