@@ -37,6 +37,9 @@ proc `$`[T](o: Option[T]): string =
 
 proc isEmpty(o: Option): bool = o.kind == okNone
 
+proc liftO[T,U](f: proc(x: T): U): proc(o: Option[T]): Option[U] =
+  (o: Option[T]) => (if o.isEmpty: U.none else: some(f(o.value)))
+
 # Ex. 4.1
 proc map[T,U](o: Option[T], f: T -> U): Option[U] =
   case o.kind
@@ -74,6 +77,13 @@ proc mean[T: SomeNumber](xs: List[T]): Option[T] =
 proc variance[T: SomeNumber](xs: List[T]): Option[T] =
   xs.mean.flatMap((m: T) => xs.map((x: T) => pow(x - m, 2)).mean)
 
+# Ex. 4.3
+proc map2[T,U,V](x: Option[T], y: Option[U], f: (T, U) -> V): Option[V] =
+  if x.isEmpty or y.isEmpty:
+    V.none
+  else:
+    f(x.value, y.value).some
+
 when isMainModule:
   let s = Some(123)
   let n = None[int]()
@@ -91,3 +101,6 @@ when isMainModule:
   let lst = @[1.float, 2, 3, 4, 5].asList
   echo "Mean of ", lst, " is ", lst.mean()
   echo "Variance of ", lst, " is ", lst.variance()
+  echo liftO((x:float) => sqrt(x))(4.float.some)
+  echo liftO((x:float) => sqrt(x))(4.float.none)
+  echo map2(1.some, 2.some, (x, y) => x + y)
