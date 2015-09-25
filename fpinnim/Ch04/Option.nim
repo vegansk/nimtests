@@ -95,6 +95,19 @@ proc sequence[T](xs: List[Option[T]]): Option[List[T]] =
     else: Some(Cons(x.value, v.value))
   xs.foldRight(Nil[T]().some, f)
 
+# Ex. 4.5
+proc traverse[T,U](xs: List[T], f: T -> Option[U]): Option[List[U]] =
+  proc step(x: Option[U], v: Option[List[U]]): Option[List[U]] =
+    if v.isEmpty:
+      v
+    elif x.isEmpty:
+      Nil[U]().some
+    else:
+      Some(Cons(x.value, v.value))
+  xs.foldRight(Nil[U]().some, (x: T, xs: Option[List[U]]) => step(f(x), xs))
+
+proc sequenceViaTraverse[T](xs: List[Option[T]]): Option[List[T]] = xs.traverse((x: Option[T]) => x)
+
 when isMainModule:
   let s = Some(123)
   let n = None[int]()
@@ -115,4 +128,8 @@ when isMainModule:
   echo liftO((x:float) => sqrt(x))(4.float.some)
   echo liftO((x:float) => sqrt(x))(4.float.none)
   echo map2(1.some, 2.some, (x, y) => x + y)
-  echo: @[1.some, 2.some, 3.some].asList.sequence()
+  let lst2 = @[1.some, 2.some, 3.some].asList
+  echo: lst2.sequence()
+  let lst3 = @[1, 2, 3].asList
+  echo: lst3.traverse((x: int) => ("Value" & $x).some())
+  echo: lst2.sequenceViaTraverse()
