@@ -87,21 +87,13 @@ proc map2[T,U,V](x: Option[T], y: Option[U], f: (T, U) -> V): Option[V] =
 
 # Ex. 4.4
 proc sequence[T](xs: List[Option[T]]): Option[List[T]] =
-  # We can't do it like this due to bug
-  # https://github.com/nim-lang/Nim/issues/3353
-  when false:
-    proc f(x: Option[T], v: Option[List[T]]): Option[List[T]] =
-      if v.isEmpty:
-        v
-      elif x.isEmpty:
-        Nil[T]().some
-      else: Some(Cons(x.value, v.value))
-    xs.foldRight(Nil[T]().some, f)
-  else:
-    if xs.isEmpty or not xs.forAll((x: Option[T]) => not x.isEmpty):
-      List[T].none
-    else:
-      xs.map(x => x.value).some
+  proc f(x: Option[T], v: Option[List[T]]): Option[List[T]] =
+    if v.isEmpty:
+      v
+    elif x.isEmpty:
+      Nil[T]().some
+    else: Some(Cons(x.value, v.value))
+  xs.foldRight(Nil[T]().some, f)
 
 when isMainModule:
   let s = Some(123)
