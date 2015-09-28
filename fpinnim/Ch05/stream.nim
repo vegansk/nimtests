@@ -1,5 +1,14 @@
 import future, fp/option, fp/list
 
+proc memoize[T](f: () -> T): () -> T =
+  var hasVal = false
+  var value: T
+  result = proc(): T =
+    if not hasVal:
+      value = f()
+      hasVal = true
+    value
+
 type
   StreamNodeType = enum
     sntEmpty, sntCons
@@ -17,18 +26,7 @@ proc Cons[T](h: () -> T, t: () -> Stream[T]): Stream[T] =
 proc Empty[T](): Stream[T] = Stream[T](kind: sntEmpty)
 
 proc cons[T](h: () -> T, t: () -> Stream[T]): Stream[T] =
-  var hv = T.none
-  let getH = proc(): T =
-    if hv.isEmpty:
-      hv = h().some
-    hv.getOrElse(low(T))
-  var tv = Stream[T].none
-  let getT = proc(): Stream[T] =
-    if tv.isEmpty:
-      tv = t().some
-    tv.getOrElse(nil)
-  
-  Cons(getH, getT)
+  Cons(h.memoize, t.memoize)
 
 proc empty[T](): Stream[T] = Empty[T]()
 
