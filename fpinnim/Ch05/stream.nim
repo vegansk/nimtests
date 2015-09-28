@@ -1,4 +1,4 @@
-import future, fp/option, fp/list
+import future, fp/option, fp/list, strutils
 
 proc memoize[T](f: () -> T): () -> T =
   var hasVal = false
@@ -36,11 +36,29 @@ proc asStream[T](xs: seq[T]): Stream[T] =
   else:
     cons(() => xs[0], () => xs[1..high(xs)].asStream)
 
+# Ex. 5.1
 proc toList[T](xs: Stream[T]): List[T] =
   if xs.kind == sntEmpty:
     Nil[T]()
   else:
     xs.h() ^^ xs.t().toList()
+
+proc `$`[T](xs: Stream[T]): string =
+  # It's so shitty
+  replace($(xs.toList), "List", "Stream")
+
+# Ex. 5.2
+proc take[T](xs: Stream[T], n: int): Stream[T] =
+  if n == 0 or xs.kind == sntEmpty:
+    empty[T]()
+  else:
+    cons(xs.h, () => xs.t().take(n - 1))
+
+proc drop[T](xs: Stream[T], n: int): Stream[T] =
+  if n == 0 or xs.kind == sntEmpty:
+    xs
+  else:
+    xs.t().drop(n - 1)
 
 when isMainModule:
   let s = @[1, 2, 3, 4, 5].asStream
@@ -50,5 +68,8 @@ when isMainModule:
   let s2 = cons(() => (echo "2"; 2), () => empty[int]())
   let s3 = cons(() => (echo "1"; 1), () => s2)
 
-  echo: s3.toList
-  echo: s3.toList
+  echo: s3
+  echo: s3
+
+  echo s.take(3)
+  echo s.drop(3)
