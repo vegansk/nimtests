@@ -60,6 +60,13 @@ proc drop[T](xs: Stream[T], n: int): Stream[T] =
   else:
     xs.t().drop(n - 1)
 
+# Ex. 5.3
+proc takeWhile[T](xs: Stream[T], p: T -> bool): Stream[T] =
+  if xs.kind == sntEmpty or not p(xs.h()):
+    empty[T]()
+  else:
+    cons(xs.h, () => xs.t().takeWhile(p))
+
 when isMainModule:
   let s = @[1, 2, 3, 4, 5].asStream
 
@@ -73,3 +80,4 @@ when isMainModule:
 
   echo s.take(3)
   echo s.drop(3)
+  echo s.takeWhile(x => x < 5)
