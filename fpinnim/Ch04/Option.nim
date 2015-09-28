@@ -97,14 +97,9 @@ proc sequence[T](xs: List[Option[T]]): Option[List[T]] =
 
 # Ex. 4.5
 proc traverse[T,U](xs: List[T], f: T -> Option[U]): Option[List[U]] =
-  proc step(x: Option[U], v: Option[List[U]]): Option[List[U]] =
-    if v.isEmpty:
-      v
-    elif x.isEmpty:
-      Nil[U]().some
-    else:
-      Some(Cons(x.value, v.value))
-  xs.foldRight(Nil[U]().some, (x: T, xs: Option[List[U]]) => step(f(x), xs))
+  proc h(x: T, ys: Option[List[U]]): Option[List[U]] =
+    ys.flatMap((ys: List[U]) => f(x).map((y: U) => y ^^ ys))
+  xs.foldRight(Nil[U]().some, h)
 
 proc sequenceViaTraverse[T](xs: List[Option[T]]): Option[List[T]] = xs.traverse((x: Option[T]) => x)
 
