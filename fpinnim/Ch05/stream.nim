@@ -36,6 +36,12 @@ proc asStream[T](xs: seq[T]): Stream[T] =
   else:
     cons(() => xs[0], () => xs[1..high(xs)].asStream)
 
+proc foldRight[T,U](xs: Stream[T], z: () -> U, f: proc(x: T, y: proc(): U): U): U =
+  if xs.kind == sntEmpty:
+    z()
+  else:
+    f(xs.h(), xs.t().foldRight(z, f))
+
 # Ex. 5.1
 proc toList[T](xs: Stream[T]): List[T] =
   if xs.kind == sntEmpty:
@@ -67,6 +73,13 @@ proc takeWhile[T](xs: Stream[T], p: T -> bool): Stream[T] =
   else:
     cons(xs.h, () => xs.t().takeWhile(p))
 
+# Ex. 5.4
+proc forAll[T](xs: Stream[T], p: T -> bool): bool =
+  if xs.kind == sntEmpty:
+    true
+  else:
+    p(xs.h()) and xs.t().forAll(p)
+
 when isMainModule:
   let s = @[1, 2, 3, 4, 5].asStream
 
@@ -81,3 +94,6 @@ when isMainModule:
   echo s.take(3)
   echo s.drop(3)
   echo s.takeWhile(x => x < 5)
+
+  echo s.forAll(x => x < 10)
+  echo s.forAll(x => x < 4)
