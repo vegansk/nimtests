@@ -41,6 +41,11 @@ proc headOption[T](xs: Stream[T]): Option[T] =
   of sntEmpty: T.none
   else: xs.h().some
 
+proc tail[T](xs: Stream[T]): Stream[T] =
+  case xs.kind
+  of sntEmpty: T.empty
+  else: xs.t()
+
 proc foldRight[T,U](xs: Stream[T], z: () -> U, f: (x: T, y: () -> U) -> (() -> U)): U =
   case xs.kind
   of sntEmpty: z()
@@ -90,6 +95,19 @@ proc takeWhileViaFoldRight[T](xs: Stream[T], p: T -> bool): Stream[T] =
 proc headOptionViaFoldRight[T](xs: Stream[T]): Option[T] =
   xs.foldRight(() => T.none, (x: T, y: () -> Option[T]) => (() => x.some))
 
+# Ex. 5.7
+proc map[T,U](xs: Stream[T], f: T -> U): Stream[U] =
+  xs.foldRight(() => U.empty, (x: T, y: () -> Stream[U]) => (() => cons(() => f(x), y)))
+
+proc filter[T](xs: Stream[T], p: T -> bool): Stream[T] =
+  xs.foldRight(() => T.empty, (x: T, y: () -> Stream[T]) => (() => (if x.p: cons(() => x, y) else: y())))
+
+proc append[T](xs: Stream[T], x: () -> T): Stream[T] =
+  xs.foldRight(() => cons(x, () => T.empty), (x: T, y: () -> Stream[T]) => (() => cons(() => x, y)))
+
+proc flatMap[T,U](xs: Stream[T], f: T -> Stream[U]): Stream[U] =
+  xs.foldRight(() => U.empty, (x: T, y: () -> Stream[U]) => (() => f(x).foldRight(y, (x: U, y: () -> Stream[U]) => (() => cons(() => x, y)))))
+
 when isMainModule:
   let s = @[1, 2, 3, 4, 5].asStream
 
@@ -110,5 +128,12 @@ when isMainModule:
 
   let badS = Cons(() => (echo "bad1"; 1), () => Cons(() => (echo "bad2"; 2), () => Cons(() => (echo "bad3"; 3), () => int.empty)))
   echo badS.takeWhileViaFoldRight(x => x < 2)
+  echo badS.filter(x => x < 2)
   echo badS.headOptionViaFoldRight
   echo int.empty.headOptionViaFoldRight
+
+  let badS2 = badS.map(x => "Value" & $x)
+  echo "Mapped to :"
+  echo badS2
+  echo badS2.append(() => "The end!")
+  echo badS2.flatMap((x: string) => cons(() => x, () => cons(() => x, () => string.empty)))
