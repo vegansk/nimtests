@@ -36,18 +36,21 @@ proc asStream[T](xs: seq[T]): Stream[T] =
   else:
     cons(() => xs[0], () => xs[1..high(xs)].asStream)
 
-proc foldRight[T,U](xs: Stream[T], z: () -> U, f: (x: T, y: () -> U) -> (() -> U)): () -> U =
-  if xs.kind == sntEmpty:
-    z
-  else:
-    f(xs.h(), xs.t().foldRight(z, f))
+proc headOption[T](xs: Stream[T]): Option[T] =
+  case xs.kind
+  of sntEmpty: T.none
+  else: xs.h().some
+
+proc foldRight[T,U](xs: Stream[T], z: () -> U, f: (x: T, y: () -> U) -> (() -> U)): U =
+  case xs.kind
+  of sntEmpty: z()
+  else: f(xs.h(), () => xs.t().foldRight(z, f))()
 
 # Ex. 5.1
 proc toList[T](xs: Stream[T]): List[T] =
-  if xs.kind == sntEmpty:
-    Nil[T]()
-  else:
-    xs.h() ^^ xs.t().toList()
+  case xs.kind
+  of sntEmpty: Nil[T]()
+  else: xs.h() ^^ xs.t().toList()
 
 proc `$`[T](xs: Stream[T]): string =
   # It's so shitty
@@ -75,14 +78,17 @@ proc takeWhile[T](xs: Stream[T], p: T -> bool): Stream[T] =
 
 # Ex. 5.4
 proc forAll[T](xs: Stream[T], p: T -> bool): bool =
-  if xs.kind == sntEmpty:
-    true
-  else:
-    p(xs.h()) and xs.t().forAll(p)
+  case xs.kind
+  of sntEmpty: true
+  else: p(xs.h()) and xs.t().forAll(p)
 
 # Ex. 5.5
 proc takeWhileViaFoldRight[T](xs: Stream[T], p: T -> bool): Stream[T] =
-  xs.foldRight(() => T.empty(), (x: T, y: () -> Stream[T]) => (() => (if x.p: cons(() => x, y) else: y())))()
+  xs.foldRight(() => T.empty(), (x: T, y: () -> Stream[T]) => (() => (if x.p: cons(() => x, y) else: T.empty)))
+
+# Ex. 5.6
+proc headOptionViaFoldRight[T](xs: Stream[T]): Option[T] =
+  xs.foldRight(() => T.none, (x: T, y: () -> Option[T]) => (() => x.some))
 
 when isMainModule:
   let s = @[1, 2, 3, 4, 5].asStream
@@ -102,5 +108,7 @@ when isMainModule:
   echo s.forAll(x => x < 10)
   echo s.forAll(x => x < 4)
 
-  echo s.takeWhileViaFoldRight(x => x < 5)
- 
+  let badS = Cons(() => (echo "bad1"; 1), () => Cons(() => (echo "bad2"; 2), () => Cons(() => (echo "bad3"; 3), () => int.empty)))
+  echo badS.takeWhileViaFoldRight(x => x < 2)
+  echo badS.headOptionViaFoldRight
+  echo int.empty.headOptionViaFoldRight
