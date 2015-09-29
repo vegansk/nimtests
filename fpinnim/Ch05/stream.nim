@@ -28,17 +28,17 @@ proc Empty[T](): Stream[T] = Stream[T](kind: sntEmpty)
 proc cons[T](h: () -> T, t: () -> Stream[T]): Stream[T] =
   Cons(h.memoize, t.memoize)
 
-proc empty[T](): Stream[T] = Empty[T]()
+proc empty(T: typedesc): Stream[T] = Empty[T]()
 
 proc asStream[T](xs: seq[T]): Stream[T] =
   if len(xs) == 0:
-    empty[T]()
+    T.empty
   else:
     cons(() => xs[0], () => xs[1..high(xs)].asStream)
 
-proc foldRight[T,U](xs: Stream[T], z: () -> U, f: proc(x: T, y: proc(): U): U): U =
+proc foldRight[T,U](xs: Stream[T], z: () -> U, f: (x: T, y: () -> U) -> (() -> U)): () -> U =
   if xs.kind == sntEmpty:
-    z()
+    z
   else:
     f(xs.h(), xs.t().foldRight(z, f))
 
@@ -56,7 +56,7 @@ proc `$`[T](xs: Stream[T]): string =
 # Ex. 5.2
 proc take[T](xs: Stream[T], n: int): Stream[T] =
   if n == 0 or xs.kind == sntEmpty:
-    empty[T]()
+    T.empty
   else:
     cons(xs.h, () => xs.t().take(n - 1))
 
@@ -69,7 +69,7 @@ proc drop[T](xs: Stream[T], n: int): Stream[T] =
 # Ex. 5.3
 proc takeWhile[T](xs: Stream[T], p: T -> bool): Stream[T] =
   if xs.kind == sntEmpty or not p(xs.h()):
-    empty[T]()
+    T.empty
   else:
     cons(xs.h, () => xs.t().takeWhile(p))
 
@@ -80,12 +80,16 @@ proc forAll[T](xs: Stream[T], p: T -> bool): bool =
   else:
     p(xs.h()) and xs.t().forAll(p)
 
+# Ex. 5.5
+proc takeWhileViaFoldRight[T](xs: Stream[T], p: T -> bool): Stream[T] =
+  xs.foldRight(() => T.empty(), (x: T, y: () -> Stream[T]) => (() => (if x.p: cons(() => x, y) else: y())))()
+
 when isMainModule:
   let s = @[1, 2, 3, 4, 5].asStream
 
   echo: s.toList
 
-  let s2 = cons(() => (echo "2"; 2), () => empty[int]())
+  let s2 = cons(() => (echo "2"; 2), () => int.empty)
   let s3 = cons(() => (echo "1"; 1), () => s2)
 
   echo: s3
@@ -97,3 +101,6 @@ when isMainModule:
 
   echo s.forAll(x => x < 10)
   echo s.forAll(x => x < 4)
+
+  echo s.takeWhileViaFoldRight(x => x < 5)
+ 
