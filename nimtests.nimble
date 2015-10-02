@@ -6,4 +6,4 @@ description   = "New Nimble project for Nim"
 license       = "MIT"
 
 [Deps]
-Requires: "nim >= 0.10.0, https://github.com/vegansk/nimfp#head"
+Requires: "nim >= 0.10.0, https://github.com/vegansk/nimfp#head, strfmt"
