@@ -1,32 +1,32 @@
-import macros, typetraits
+import macros, times, strutils, typetraits
 
-## Test 2
-type Data* = object
-  ## Test comment
-  value*: int ## `value` lalala
-  fvalue: float
+type
+  SubData* = object
+    value*: string
+  Data* = object
+    value*: int
+    fValue*: float
+    tValue*: Time
+    sValue*: SubData
 
-iterator objfields(t: typedesc): (NimNode, NimNode) =
-  # t.getType[1] gets the underlying type of the typedesc parameter.
-  # getType[1] of that value gets the object items.
-  let reclist = t.getType[1].getType[1]
+iterator objfields(t: NimNode): NimNode =
+  let reclist = t.getType[1]
   for i in 0..len(reclist)-1:
-    yield (reclist[i], reclist[i].getType)
+    yield reclist[i]
 
-macro genObjCons(T: typedesc): stmt =
-  echo T.getType[1].getType.treeRepr()
-  expectKind T.getType[1].getType, nnkObjectTy
-  let name = ident("init" & $T.getType[1])
-  var params = @[T.getType[1]]
-  var body = newNimNode nnkObjConstr
-  body.add(T.getType[1])
-  for fName, fType in T.objfields:
-    let parName = ident($fName & "Param")
-    params.add(newIdentDefs(parName, fType))
-    body.add(newColonExpr(fName, parName))
-  let procDef = newProc(name, params, body)
-  result = newStmtList procDef
+macro fields[T](x: T, fields: seq[tuple[name: string, `type`: string]]): stmt =
+  result = newStmtList()
+  for n in x.getType.objfields:
+    let i = $n
+    let s = quote do:
+      `fields`.add((`i`, type(x.`n`).name))
+    result.add(s)
 
-Data.genObjCons()
+proc getFields[T](): seq[tuple[name: string, `type`: string]] =
+  var x: T
+  var f: seq[tuple[name: string, `type`: string]] = @[]
+  fields(x, f)
+  f
 
-echo initData(1, 2)
+echo getFields[Data]()
+echo getFields[SubData]()
