@@ -11,4 +11,4 @@ macro test(xs: static[seq[string]]): stmt =
 
 when isMainModule:
   test(@["1", "2", "3"])
-  test(toSeq(0..100).mapIt(string, $it))
+  test(toSeq(0..100).map(proc(x: int): string{.compileTime.} = $x))
