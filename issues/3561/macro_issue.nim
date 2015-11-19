@@ -36,7 +36,7 @@ proc getOrElse[T](o: Option[T], def: T): T =
 proc quoteStr(s: string): Option[string] =
   s.some.notEmpty.map(v => "\"" & v & "\"")
 
-macro str(s: static[string]): expr =
+macro str(s: static[string]): stmt =
   let sn = newStrLitNode(quoteStr(s).getOrElse("NONE"))
   result = quote do:
     echo `sn`
