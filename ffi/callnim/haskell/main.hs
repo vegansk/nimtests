@@ -10,8 +10,5 @@ foreign import ccall "NimMain" nimMain :: IO ()
 main = do
   nimMain
   s <- newCString "Hello from Haskell"
-  -- cS <- testFunc s
-  -- nimS <- peekCString cS
-  -- putStrLn nimS
   testFunc s >>= peekCString >>= putStrLn
   free s
