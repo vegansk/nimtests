@@ -81,7 +81,7 @@ int get_system_drive_serial(wchar_t* buff, int buff_len) {
 
   hr = IWbemServices_ExecQuery(pSvc,
                                L"WQL", 
-                               L"SELECT * FROM Win32_OperatingSystem",
+                               L"SELECT * FROM Win32_PhysicalMedia",
                                WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, 
                                NULL,
                                &pEnumerator);
