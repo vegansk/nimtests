@@ -2,7 +2,12 @@ import future
 
 {.emit: """
 
+/* Nim's closure func uses __fastcall convention on Windows, see N_NIMCALL definition in nimbase.h */
+#ifdef WIN32
+typedef int (__fastcall *CB)(int curr, void* pEnv);
+#else
 typedef int (*CB)(int curr, void* pEnv);
+#endif
 
 void test(int from, int to, CB cb, void* pEnv) {
   int c;
