@@ -28,6 +28,6 @@ of true:
     "a"
   else:
     "b"
-  echo z
+    echo z
 else:
   echo "no"
