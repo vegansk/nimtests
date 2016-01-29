@@ -1,12 +1,14 @@
-import iup
+import iup, ../iuputils
 
 {.passL: "-Wl,-rpath=.".}
 
 discard iup.open(nil, nil)
 
 let txt = iup.text(nil)
-txt.setAttribute("MULTILINE", "YES")
-txt.setAttribute("EXPAND", "YES")
+txt.attr.set({
+  "multiLine": "yes",
+  "expand": "yes"
+})
 
 let miOpen = iup.item("Open", nil)
 let miSaveAs = iup.item("Save As...", nil)
@@ -18,29 +20,33 @@ let miAbout = iup.item("About...", nil)
 
 miOpen.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
   let dlg = iup.fileDlg()
-  dlg.setAttribute("DIALOGTYPE", "OPEN")
-  dlg.setAttribute("EXTFILTER", "Text Files|*.txt|All Files|*.*|")
+  dlg.attr.set({
+    "dialogType": "open",
+    "extFilter": "Text Files|*.txt|All Files|*.*|" 
+  })
 
   dlg.popup(IUP_CENTER, IUP_CENTER)
 
-  if dlg.getInt("STATUS") != -1:
-    let fname = $dlg.getAttribute("VALUE")
+  if dlg.dlgStatus != -1:
+    let fname = dlg.attr.value
     let data = fname.readFile
-    txt.setAttribute("VALUE", data)
+    txt.attr.value = data
 
   dlg.destroy
   IUP_DEFAULT
 
 miSaveAs.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
   let dlg = iup.fileDlg()
-  dlg.setAttribute("DIALOGTYPE", "SAVE")
-  dlg.setAttribute("EXTFILTER", "Text Files|*.txt|All Files|*.*|")
+  dlg.attr.set({
+    "dialogType": "save",
+    "extFilter": "Text Files|*.txt|All Files|*.*|" 
+  })
 
   dlg.popup(IUP_CENTER, IUP_CENTER)
 
   if dlg.getInt("STATUS") != -1:
-    let fname = $dlg.getAttribute("VALUE")
-    let data = $txt.getAttribute("VALUE")
+    let fname = dlg.attr.value
+    let data = txt.attr.value
     fname.writeFile(data)
 
   dlg.destroy
@@ -51,15 +57,19 @@ miExit.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
 
 miFont.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
   let dlg = iup.fontDlg()
-  dlg.setAttribute("VALUE", txt.getAttribute("FONT"))
-
+  dlg.attr.value = txt.attr.font
+  
   dlg.popup(IUP_CENTER, IUP_CENTER)
 
-  if dlg.getInt("STATUS") != -1:
-    let font = dlg.getAttribute("VALUE")
-    txt.setAttribute("FONT", font)
+  if dlg.dlgStatus != -1:
+    let font = dlg.attr.value
+    txt.attr.font = font
 
   dlg.destroy
+  IUP_DEFAULT
+
+miAbout.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
+  iup.message("About", "Vega was here!")
   IUP_DEFAULT
 
 let fileMenu = iup.menu(miOpen,
@@ -72,16 +82,21 @@ let fileSubMenu = iup.submenu("File", fileMenu)
 let fmtMenu = iup.menu(miFont, nil)
 let fmtSubMenu = iup.submenu("Format", fmtMenu)
 
-let menu = iup.menu(fileSubMenu, fmtSubMenu, nil)
+let helpMenu = iup.menu(miAbout, nil)
+let helpSubMenu = iup.submenu("Help", helpMenu)
+
+let menu = iup.menu(fileSubMenu, fmtSubMenu, helpSubMenu, nil)
 
 let vbox = iup.vbox(txt, nil)
 let dlg = iup.dialog(vbox)
-dlg.setAttributeHandle("MENU", menu)
-dlg.setAttribute("TITLE", "Simple Notepad")
-dlg.setAttribute("SIZE", "QUARTERxQUARTER")
+dlg.hattr.menu = menu
+dlg.attr.set({
+  "title": "Simple Notepad",
+  "size": "QUARTERxQUARTER"
+})
 
 dlg.showXY(IUP_CENTER, IUP_CENTER)
-dlg.setAttribute("USERSIZE", nil)
+dlg.hattr.userSize = nil
 
 iup.mainLoop()
 
