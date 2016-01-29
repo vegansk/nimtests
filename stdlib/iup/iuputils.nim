@@ -1,5 +1,11 @@
 import iup, strutils
 
+when defined(windows):
+  when defined(vcc):
+    {.link: "../manifest/app.res".}
+  else:
+    {.link: "../manifest/app.rc.o".}
+
 type IupAttr* = distinct PIhandle
 type IupHAttr* = distinct PIhandle
 
