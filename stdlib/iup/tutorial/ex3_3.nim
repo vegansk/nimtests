@@ -18,6 +18,9 @@ let miFont = iup.item("Set font...", nil)
 
 let miAbout = iup.item("About...", nil)
 
+proc setStrAttribute*(ih: PIhandle, name, value: cstring) {.
+  importc: "IupSetStrAttribute", cdecl, dynlib: "libiup(|3.0|2.7|2.6|2.5|2.4).so(|.1)".}
+
 miOpen.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
   let dlg = iup.fileDlg()
   dlg.attr.set({

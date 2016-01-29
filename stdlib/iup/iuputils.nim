@@ -13,14 +13,14 @@ proc `.`*(a: IupHAttr, name: string): PIhandle =
   a.PIhandle.getAttributeHandle(name.toUpper)
 
 proc `.=`*(a: IupAttr, name, value: string) =
-  a.PIhandle.setAttribute(name.toUpper, value)
+  a.PIhandle.storeAttribute(name.toUpper, value)
 
 proc `.=`*(a: IupHAttr, name: string, value: PIhandle) =
   a.PIhandle.setAttributeHandle(name.toUpper, value)
 
 proc set*(a: IupAttr, args: varargs[(string, string)]) =
   for v in args:
-    a.PIhandle.setAttribute(v[0].toUpper, v[1])
+    a.PIhandle.storeAttribute(v[0].toUpper, v[1])
 
 proc set*(a: IupHAttr, args: varargs[(string, PIhandle)]) =
   for v in args:
