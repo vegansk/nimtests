@@ -1,4 +1,4 @@
-import iup, ../iuputils
+import iup, ../iuputils, future
 
 when defined(posix):
   {.passL: "-Wl,-rpath=.".}
@@ -19,7 +19,7 @@ let miFont = iup.item("Set font...", nil)
 
 let miAbout = iup.item("About...", nil)
 
-miOpen.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
+miOpen.onAction do (self: PIhandle) -> auto:
   let dlg = iup.fileDlg()
   dlg.attr.set({
     "dialogType": "open",
@@ -27,16 +27,16 @@ miOpen.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
   })
 
   dlg.popup(IUP_CENTER, IUP_CENTER)
+  defer: dlg.destroy
 
   if dlg.dlgStatus != -1:
     let fname = dlg.attr.value
     let data = fname.readFile
     txt.attr.value = data
 
-  dlg.destroy
   IUP_DEFAULT
 
-miSaveAs.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
+miSaveAs.onAction do (self: PIhandle) -> auto:
   let dlg = iup.fileDlg()
   dlg.attr.set({
     "dialogType": "save",
@@ -44,29 +44,31 @@ miSaveAs.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
   })
 
   dlg.popup(IUP_CENTER, IUP_CENTER)
+  defer: dlg.destroy
 
   if dlg.getInt("STATUS") != -1:
     let fname = dlg.attr.value
     let data = txt.attr.value
     fname.writeFile(data)
 
-  dlg.destroy
   IUP_DEFAULT
 
-miExit.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
-  IUP_CLOSE
+# miExit.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
+#   IUP_CLOSE
+
+miExit.onAction(h => IUP_CLOSE)
 
 miFont.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
   let dlg = iup.fontDlg()
   dlg.attr.value = txt.attr.font
   
   dlg.popup(IUP_CENTER, IUP_CENTER)
-
+  defer: dlg.destroy
+ 
   if dlg.dlgStatus != -1:
     let font = dlg.attr.value
     txt.attr.font = font
 
-  dlg.destroy
   IUP_DEFAULT
 
 miAbout.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
