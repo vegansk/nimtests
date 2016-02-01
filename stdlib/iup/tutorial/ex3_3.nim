@@ -53,12 +53,9 @@ miSaveAs.onAction do (self: PIhandle) -> auto:
 
   IUP_DEFAULT
 
-# miExit.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
-#   IUP_CLOSE
-
 miExit.onAction(h => IUP_CLOSE)
 
-miFont.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
+miFont.onAction do (self: PIhandle) -> auto:
   let dlg = iup.fontDlg()
   dlg.attr.value = txt.attr.font
   
@@ -71,9 +68,7 @@ miFont.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
 
   IUP_DEFAULT
 
-miAbout.setCallback("ACTION") do (self: PIhandle) -> auto {.cdecl.}:
-  iup.message("About", "Vega was here!")
-  IUP_DEFAULT
+miAbout.onAction(h => (iup.message("About", "Vega was here!"); IUP_DEFAULT))
 
 let fileMenu = iup.menu(miOpen,
                         miSaveAs,

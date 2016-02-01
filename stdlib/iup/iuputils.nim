@@ -10,19 +10,27 @@ when defined(windows):
 # Attributes helpers 
 
 type IupAttr* = distinct PIhandle
+type IupPAttr* = distinct PIhandle
 type IupHAttr* = distinct PIhandle
 
 proc attr*(r: PIhandle): IupAttr = r.IupAttr
+proc pattr*(r: PIhandle): IupPAttr = r.IupPAttr
 proc hattr*(r: PIhandle): IupHAttr = r.IupHAttr
 
 proc `.`*(a: IupAttr, name: string): string =
   $a.PIhandle.getAttribute(name.toUpper)
+
+proc `.`*(a: IupPAttr, name: string): pointer =
+  cast[pointer](a.PIhandle.getAttribute(name.toUpper))
 
 proc `.`*(a: IupHAttr, name: string): PIhandle =
   a.PIhandle.getAttributeHandle(name.toUpper)
 
 proc `.=`*(a: IupAttr, name, value: string) =
   a.PIhandle.storeAttribute(name.toUpper, value)
+
+proc `.=`*(a: IupPAttr, name: string, value: pointer) =
+  a.PIhandle.storeAttribute(name.toUpper, cast[cstring](value))
 
 proc `.=`*(a: IupHAttr, name: string, value: PIhandle) =
   a.PIhandle.setAttributeHandle(name.toUpper, value)
