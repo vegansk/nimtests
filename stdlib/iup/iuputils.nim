@@ -30,7 +30,7 @@ proc `.=`*(a: IupAttr, name, value: string) =
   a.PIhandle.storeAttribute(name.toUpper, value)
 
 proc `.=`*(a: IupPAttr, name: string, value: pointer) =
-  a.PIhandle.storeAttribute(name.toUpper, cast[cstring](value))
+  a.PIhandle.setAttribute(name.toUpper, cast[cstring](value))
 
 proc `.=`*(a: IupHAttr, name: string, value: PIhandle) =
   a.PIhandle.setAttributeHandle(name.toUpper, value)
@@ -42,6 +42,45 @@ proc set*(a: IupAttr, args: varargs[(string, string)]) =
 proc set*(a: IupHAttr, args: varargs[(string, PIhandle)]) =
   for v in args:
     a.PIhandle.setAttributeHandle(v[0].toUpper, v[1])
+
+####################################################################################################
+# New attributes helpers
+
+type
+  IupAttrVal* = object
+    h: PIhandle
+    n: string
+
+proc `[]`*(h: PIhandle, name: string): IupAttrVal =
+  IupAttrVal(h: h, n: name.toUpper)
+
+converter asStr*(v: IupAttrVal): string =
+  $v.h.getAttribute(v.n)
+
+converter asPtr*(v: IupAttrVal): pointer =
+  cast[pointer](v.h.getAttribute(v.n))
+
+converter asHandle*(v: IupAttrVal): PIhandle =
+  v.h.getAttributeHandle(v.n)
+
+proc `[]=`*(h: PIhandle, name: string, v: string) =
+  h.storeAttribute(name.toUpper, v)
+
+proc `[]=`*(h: PIhandle, name: string, v: pointer) =
+  h.setAttribute(name.toUpper, cast[cstring](v))
+
+proc `[]=`*(h: PIhandle, name: string, v: PIhandle) =
+  h.setAttributeHandle(name.toUpper, v)
+
+macro set*(h: PIhandle, data: expr): stmt =
+  expectKind data, nnkTableConstr
+  result = newStmtList()
+  for i in 0..<data.len:
+    expectKind data[i], nnkExprColonExpr
+    let n = data[i][0]
+    let v = data[i][1]
+    result.add quote do:
+      `h`[`n`] = `v`
 
 ####################################################################################################
 # Dialog helpers
