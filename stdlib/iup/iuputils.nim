@@ -7,6 +7,18 @@ when defined(windows):
     {.link: "../manifest/app.rc.o".}
 
 ####################################################################################################
+# IUP declarations
+when defined(windows):
+  const dllname = "iup(|30|27|26|25|24).dll"
+elif defined(macosx):
+  const dllname = "libiup(|3.0|2.7|2.6|2.5|2.4).dylib"
+else:
+  const dllname = "libiup(|3.0|2.7|2.6|2.5|2.4).so(|.1)"
+
+proc setInt*(ih: PIhandle, name: cstring, value: cint) {.
+  importc: "IupSetInt", cdecl, dynlib: dllname.}
+
+####################################################################################################
 # Attributes helpers 
 
 type IupAttr* = distinct PIhandle
@@ -57,6 +69,9 @@ proc `[]`*(h: PIhandle, name: string): IupAttrVal =
 converter asStr*(v: IupAttrVal): string =
   $v.h.getAttribute(v.n)
 
+converter asInt*(v: IupAttrVal): int =
+  v.h.getInt(v.n).int
+
 converter asPtr*(v: IupAttrVal): pointer =
   cast[pointer](v.h.getAttribute(v.n))
 
@@ -65,6 +80,9 @@ converter asHandle*(v: IupAttrVal): PIhandle =
 
 proc `[]=`*(h: PIhandle, name: string, v: string) =
   h.storeAttribute(name.toUpper, v)
+
+proc `[]=`*(h: PIhandle, name: string, v: int) =
+  h.setInt(name.toUpper, v.cint)
 
 proc `[]=`*(h: PIhandle, name: string, v: pointer) =
   h.setAttribute(name.toUpper, cast[cstring](v))

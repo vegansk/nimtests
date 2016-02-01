@@ -1,4 +1,4 @@
-import iup, ../iuputils, future
+import iup, ../iuputils, future, strutils
 
 when defined(posix):
   {.passL: "-Wl,-rpath=.".}
@@ -8,7 +8,8 @@ discard iup.open(nil, nil)
 let txt = iup.text(nil)
 txt.attr.set({
   "multiLine": "yes",
-  "expand": "yes"
+  "expand": "yes",
+  "name": "txtCtrl"
 })
 
 let miOpen = iup.item("Open", nil)
@@ -58,16 +59,72 @@ miSaveAs.onAction proc(h: auto): auto =
 
 miExit.onAction(h => IUP_CLOSE)
 
+miGoTo.onAction proc(h: auto): auto =
+  let txtCtrl = h.getDialogChild("txtCtrl")
+  let lineCount = txtCtrl["lineCount"].asInt
+
+  let lbl = iup.label(nil)
+  lbl["title"] = ("Line number [1-$#]" % $lineCount)
+  let txt = iup.text(nil)
+  txt.set({
+    "mask": IUP_MASK_UINT,
+    "visibleColumns": "20"
+  })
+
+  let okBtn = iup.button("OK", nil)
+  okBtn["padding"] = "10x2"
+  okBtn.onAction proc(h: auto): auto =
+    let c = txt["value"]
+    if c < 1 or c > lineCount:
+      iup.message("Error", "Invalid line number")
+      IUP_DEFAULT
+    else:
+      h.getDialog()["status"] = 1
+      IUP_CLOSE
+
+  let cancelBtn = iup.button("Cancel", nil)
+  cancelBtn["padding"] = "10x2"
+  cancelBtn.onAction proc(h: auto): auto =
+    h.getDialog()["status"] = 0
+    IUP_CLOSE
+
+  let hbox = iup.hbox(iup.fill(), okBtn, cancelBtn)
+  hbox["normalSize"] = "horizontal"
+  let vbox = iup.vbox(lbl, txt, hbox)
+  vbox.set({
+    "margin": "10x10",
+    "gap": 5
+  })
+
+  let dlg = iup.dialog(vbox)
+  dlg.set({
+    "title": "Go To Line",
+    "dialogFrame": "yes",
+    "defaultEnter": okBtn,
+    "defaultEsc": cancelBtn,
+    "parentDialog": miGoTo.getDialog
+  })
+  dlg.popup(IUP_CENTERPARENT, IUP_CENTERPARENT)
+  defer: dlg.destroy
+
+  if dlg["status"] == 1:
+    let c = txt["value"].asInt
+    var pos: cint
+    txtCtrl.textConvertLinColToPos(c.cint, 0, pos)
+    txtCtrl["caretPos"] = pos.int
+    txtCtrl["scrollToPos"] = pos.int
+
+  IUP_DEFAULT
+
 miFont.onAction proc(h: auto): auto =
   let dlg = iup.fontDlg()
   dlg["value"] = txt["font"].asStr
-  
+
   dlg.popup(IUP_CENTER, IUP_CENTER)
   defer: dlg.destroy
- 
+
   if dlg.dlgStatus != -1:
     txt["font"] = dlg["value"].asStr
-
   IUP_DEFAULT
 
 miAbout.onAction(h => (iup.message("About", "Vega was here!"); IUP_DEFAULT))
