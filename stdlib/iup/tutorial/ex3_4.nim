@@ -6,7 +6,7 @@ when defined(posix):
 discard iup.open(nil, nil)
 
 let txt = iup.text(nil)
-txt.attr.set({
+txt.set({
   "multiLine": "yes",
   "expand": "yes",
   "name": "txtCtrl"
@@ -33,7 +33,7 @@ miOpen.onAction proc(h: auto): auto =
   dlg.popup(IUP_CENTER, IUP_CENTER)
   defer: dlg.destroy
 
-  if dlg.dlgStatus != -1:
+  if dlg["status"] != -1:
     let fname = dlg["value"]
     let data = fname.readFile
     txt["value"] = data
@@ -123,7 +123,7 @@ miFont.onAction proc(h: auto): auto =
   dlg.popup(IUP_CENTER, IUP_CENTER)
   defer: dlg.destroy
 
-  if dlg.dlgStatus != -1:
+  if dlg["status"] != -1:
     txt["font"] = dlg["value"].asStr
   IUP_DEFAULT
 
