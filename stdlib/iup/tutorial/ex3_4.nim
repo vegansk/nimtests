@@ -65,8 +65,8 @@ miGoTo.onAction proc(h: auto): auto =
 
   let lbl = iup.label(nil)
   lbl["title"] = ("Line number [1-$#]" % $lineCount)
-  let txt = iup.text(nil)
-  txt.set({
+  let lineTxt = iup.text(nil)
+  lineTxt.set({
     "mask": IUP_MASK_UINT,
     "visibleColumns": "20"
   })
@@ -74,7 +74,7 @@ miGoTo.onAction proc(h: auto): auto =
   let okBtn = iup.button("OK", nil)
   okBtn["padding"] = "10x2"
   okBtn.onAction proc(h: auto): auto =
-    let c = txt["value"]
+    let c = lineTxt["value"]
     if c < 1 or c > lineCount:
       iup.message("Error", "Invalid line number")
       IUP_DEFAULT
@@ -88,9 +88,9 @@ miGoTo.onAction proc(h: auto): auto =
     h.getDialog()["status"] = 0
     IUP_CLOSE
 
-  let hbox = iup.hbox(iup.fill(), okBtn, cancelBtn)
+  let hbox = iup.hbox(iup.fill(), okBtn, cancelBtn, nil)
   hbox["normalSize"] = "horizontal"
-  let vbox = iup.vbox(lbl, txt, hbox)
+  let vbox = iup.vbox(lbl, lineTxt, hbox, nil)
   vbox.set({
     "margin": "10x10",
     "gap": 5
@@ -108,7 +108,7 @@ miGoTo.onAction proc(h: auto): auto =
   defer: dlg.destroy
 
   if dlg["status"] == 1:
-    let c = txt["value"].asInt
+    let c = lineTxt["value"].asInt
     var pos: cint
     txtCtrl.textConvertLinColToPos(c.cint, 0, pos)
     txtCtrl["caretPos"] = pos.int
