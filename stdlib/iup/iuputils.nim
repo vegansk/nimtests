@@ -56,12 +56,15 @@ proc `[]=`*(h: PIhandle, name: string, v: PIhandle) =
 macro set*(h: PIhandle, data: expr): stmt =
   expectKind data, nnkTableConstr
   result = newStmtList()
+  let lval = genSym(nskLet)
+  result.add quote do:
+    let `lval` = `h`
   for i in 0..<data.len:
     expectKind data[i], nnkExprColonExpr
     let n = data[i][0]
     let v = data[i][1]
     result.add quote do:
-      `h`[`n`] = `v`
+      `lval`[`n`] = `v`
 
 ####################################################################################################
 # Callback helpers
