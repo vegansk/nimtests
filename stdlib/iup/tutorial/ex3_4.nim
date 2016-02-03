@@ -1,4 +1,5 @@
-import iup, ../iuputils, future, strutils
+import ../iuputils, future, strutils
+from iup import nil
 
 when defined(posix):
   {.passL: "-Wl,-rpath=.".}
@@ -6,94 +7,81 @@ when defined(posix):
 discard iup.open(nil, nil)
 
 let txtCtrl = iup.text(nil).set({
-  "multiLine": "yes",
+  "multiLine": true,
   "expand": "yes"
 }).set({
   "name": "txtCtrl"
 })
 
-let miOpen = iup.item("Open", nil).onAction(proc(h: auto): auto =
+let miOpen = menuItem("Open").onAction(proc(h: auto): auto =
   let dlg = iup.fileDlg()
   dlg.set({
     "dialogType": "open",
     "extFilter": "Text Files|*.txt|All Files|*.*|" 
   })
 
-  dlg.popup(IUP_CENTER, IUP_CENTER)
-  defer: dlg.destroy
+  dlg.popupLocal(IUP_CENTER, IUP_CENTER)
 
-  if dlg["status"] != -1:
-    let fname = dlg["value"]
-    let data = fname.readFile
-    txtCtrl["value"] = data
+  if dlg.status != -1:
+    txtCtrl.value = dlg.value.readFile
 
   IUP_DEFAULT
 )
 
-let miSaveAs = iup.item("Save as...", nil).onAction(proc(h: auto): auto =
+let miSaveAs = menuItem("Save as...").onAction(proc(h: auto): auto =
   let dlg = iup.fileDlg()
   dlg.set({
     "dialogType": "save",
     "extFilter": "Text Files|*.txt|All Files|*.*|" 
   })
 
-  dlg.popup(IUP_CENTER, IUP_CENTER)
-  defer: dlg.destroy
+  dlg.popupLocal(IUP_CENTER, IUP_CENTER)
 
-  if dlg.getInt("STATUS") != -1:
-    let fname = dlg["value"]
-    let data = txtCtrl["value"]
-    fname.writeFile(data)
+  if dlg.status != -1:
+    dlg.value.writeFile(txtCtrl.value)
 
   IUP_DEFAULT
 )
 
-let miExit = iup.item("Exit", nil).onAction(h => IUP_CLOSE)
+let miExit = menuItem("Exit").onAction(h => IUP_CLOSE)
 
-let miFont = iup.item("Set font...", nil).onAction(proc(h: auto): auto =
+let miFont = menuItem("Set font...").onAction(proc(h: auto): auto =
   let dlg = iup.fontDlg()
-  dlg["value"] = txtCtrl["font"].asStr
+  dlg.value = txtCtrl.font
 
-  dlg.popup(IUP_CENTER, IUP_CENTER)
-  defer: dlg.destroy
+  dlg.popupLocal(IUP_CENTER, IUP_CENTER)
 
-  if dlg["status"] != -1:
-    txtCtrl["font"] = dlg["value"].asStr
+  if dlg.status != -1:
+    txtCtrl.font = dlg.value
+
   IUP_DEFAULT
 )
 
-let miFind = iup.item("Find...", nil)
-let miGoTo = iup.item("Go to...", nil).onAction(proc(h: auto): auto =
-  let lineCount = txtCtrl["lineCount"].asInt
+let miFind = menuItem("Find...")
+let miGoTo = menuItem("Go to...").onAction(proc(h: auto): auto =
+  let lineCount = txtCtrl["lineCount"].to(int)
 
-  let lbl = iup.label(nil)
-  lbl["title"] = ("Line number [1-$#]" % $lineCount)
-  let lineTxt = iup.text(nil)
-  lineTxt.set({
+  let lbl = iup.label(nil).set({"title": "Line number [1-$#]" % $lineCount})
+  let lineTxt = iup.text(nil).set({
     "mask": IUP_MASK_UINT,
-    "visibleColumns": "20"
+    "visibleColumns": 20
   })
 
-  let okBtn = iup.button("OK", nil)
-  okBtn["padding"] = "10x2"
-  okBtn.onAction proc(h: auto): auto =
-    let c = lineTxt["value"]
+  let okBtn = iup.button("OK", nil).setPadding("10x2").onAction(proc(h: auto): auto =
+    let c = lineTxt.value
     if c < 1 or c > lineCount:
       iup.message("Error", "Invalid line number")
       IUP_DEFAULT
     else:
-      h.getDialog()["status"] = 1
+      h.getDialog.status = 1
       IUP_CLOSE
+  )
 
-  let cancelBtn = iup.button("Cancel", nil)
-  cancelBtn["padding"] = "10x2"
-  cancelBtn.onAction proc(h: auto): auto =
-    h.getDialog()["status"] = 0
-    IUP_CLOSE
+  let cancelBtn = button("Cancel").setPadding("10x2").onAction((h) => (h.getDialog.status = 0; IUP_CLOSE))
 
-  let hbox = iup.hbox(iup.fill(), okBtn, cancelBtn, nil)
+  let hbox = hbox(iup.fill(), okBtn, cancelBtn)
   hbox["normalSize"] = "horizontal"
-  let vbox = iup.vbox(lbl, lineTxt, hbox, nil)
+  let vbox = vbox(lbl, lineTxt, hbox)
   vbox.set({
     "margin": "10x10",
     "gap": 5
@@ -102,13 +90,12 @@ let miGoTo = iup.item("Go to...", nil).onAction(proc(h: auto): auto =
   let dlg = iup.dialog(vbox)
   dlg.set({
     "title": "Go To Line",
-    "dialogFrame": "yes",
+    "dialogFrame": true,
     "defaultEnter": okBtn,
     "defaultEsc": cancelBtn,
     "parentDialog": h.getDialog
   })
-  dlg.popup(IUP_CENTERPARENT, IUP_CENTERPARENT)
-  defer: dlg.destroy
+  dlg.popupLocal(IUP_CENTERPARENT, IUP_CENTERPARENT)
 
   if dlg["status"] == 1:
     let c = lineTxt["value"].asInt
@@ -120,7 +107,7 @@ let miGoTo = iup.item("Go to...", nil).onAction(proc(h: auto): auto =
   IUP_DEFAULT
 )
 
-let miAbout = iup.item("About...", nil).onAction(h => (iup.message("About", "Vega was here!"); IUP_DEFAULT))
+let miAbout = menuItem("About...").onAction(h => (iup.message("About", "Vega was here!"); IUP_DEFAULT))
 
 let menu = iup.menu(
   iup.submenu("File", iup.menu(miOpen,
@@ -134,7 +121,7 @@ let menu = iup.menu(
   nil
 )
 
-let vbox = iup.vbox(txtCtrl, nil)
+let vbox = vbox(txtCtrl)
 let dlg = iup.dialog(vbox).set({
   "menu": menu,
   "title": "Simple Notepad",

@@ -1,4 +1,4 @@
-import iup, strutils, tables, macros
+import strutils, tables, macros, iup
 
 when defined(windows):
   when defined(vcc):
@@ -35,11 +35,20 @@ converter asStr*(v: IupAttrVal): string =
 converter asInt*(v: IupAttrVal): int =
   v.h.getInt(v.n).int
 
+converter asBool*(v: IupAttrVal): bool =
+  v.asInt == 1
+
 converter asPtr*(v: IupAttrVal): pointer =
   cast[pointer](v.h.getAttribute(v.n))
 
 converter asHandle*(v: IupAttrVal): PIhandle =
   v.h.getAttributeHandle(v.n)
+
+proc to*(v: IupAttrVal, t = string): string =  v.asStr
+proc to*(v: IupAttrVal, t = int): int =  v.asInt
+proc to*(v: IupAttrVal, t = bool): bool =  v.asBool
+proc to*(v: IupAttrVal, t = pointer): pointer =  v.asPtr
+proc to*(v: IupAttrVal, t = PIhandle): PIhandle =  v.asHandle
 
 proc `[]=`*(h: PIhandle, name: string, v: string): PIhandle {.discardable.} =
   h.storeAttribute(name.toUpper, v)
@@ -47,6 +56,10 @@ proc `[]=`*(h: PIhandle, name: string, v: string): PIhandle {.discardable.} =
 
 proc `[]=`*(h: PIhandle, name: string, v: int): PIhandle {.discardable.}=
   h.setInt(name.toUpper, v.cint)
+  h
+
+proc `[]=`*(h: PIhandle, name: string, v: bool): PIhandle {.discardable.}=
+  h.setInt(name.toUpper, if v: 1.cint else: 0.cint)
   h
 
 proc `[]=`*(h: PIhandle, name: string, v: pointer): PIhandle {.discardable.} =
@@ -68,6 +81,36 @@ macro set*(h: PIhandle, data: expr): expr =
     let v = data[i][1]
     result.add quote do:
       `lval`[`n`] = `v`
+
+####################################################################################################
+# Common properties
+
+macro genCommonProperty(name: static[string]): stmt =
+  let prop = ident(name)
+  let propEq = ident(name & "=")
+  quote do:
+    proc `prop`*(h: PIhandle): IupAttrVal = h[`name`]
+    proc `propEq`*(h: PIhandle, v: string) = h[`name`] = v
+    proc `propEq`*(h: PIhandle, v: int) = h[`name`] = v
+    proc `propEq`*(h: PIhandle, v: bool) = h[`name`] = v
+    proc `propEq`*(h: PIhandle, v: pointer) = h[`name`] = v
+    proc `propEq`*(h: PIhandle, v: PIhandle) = h[`name`] = v
+
+macro genTypedProperty(name: static[string], t: typedesc): stmt =
+  let prop = ident(name)
+  let propEq = ident(name & "=")
+  let setter = ident("set" & name.capitalize)
+  quote do:
+    proc `prop`*(h: PIhandle): `t` = h[`name`].to(`t`)
+    proc `propEq`*(h: PIhandle, v: `t`) = h[`name`] = v
+    proc `setter`*(h: PIhandle, v: `t`): PIhandle = h[`name`] = v
+
+genCommonProperty "value"
+genTypedProperty "status", int
+genTypedProperty "name", string
+genTypedProperty "expand", string
+genTypedProperty "font", string
+genTypedProperty "padding", string
 
 ####################################################################################################
 # Callback helpers
@@ -123,3 +166,42 @@ macro genAction(action: static[string]): stmt =
       h
 
 genAction "Action"
+
+####################################################################################################
+# IUP C API wrappers
+
+proc vcall(funcName: NimNode, args: NimNode): expr =
+  expectKind args, nnkBracket
+  result = newCall(funcName)
+  for x in 0..<args.len:
+    result.add(args[x])
+  result.add(newNilLit())
+
+proc menuItem*(title: string, action = ""): PIhandle =
+  iup.item(title, if action == "": nil else: action.cstring)
+
+proc button*(title: string, action = ""): PIhandle =
+  iup.button(title, if action == "": nil else: action.cstring)
+
+macro hbox*(args: varargs[untyped]): expr =
+  vcall(newDotExpr(ident"iup", ident"hbox"), args)
+
+macro vbox*(args: varargs[untyped]): expr =
+  vcall(newDotExpr(ident"iup", ident"vbox"), args)
+
+template popupLocal*(h: PIhandle, x, y: cint) =
+  iup.popup(h, x, y)
+  defer:
+    h.destroy
+
+export iup.popup,
+     iup.destroy,
+     iup.getDialog,
+     iup.textConvertLinColToPos, # TODO: Rewrite to remove var patameter
+     iup.showXY
+
+export IUP_CENTER,
+     IUP_DEFAULT,
+     IUP_CLOSE,
+     IUP_MASK_UINT,
+     IUP_CENTERPARENT
