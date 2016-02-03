@@ -5,25 +5,13 @@ when defined(posix):
 
 discard iup.open(nil, nil)
 
-let txt = iup.text(nil)
-txt.set({
+let txtCtrl = iup.text(nil).set({
   "multiLine": "yes",
   "expand": "yes",
   "name": "txtCtrl"
 })
 
-let miOpen = iup.item("Open", nil)
-let miSaveAs = iup.item("Save as...", nil)
-let miExit = iup.item("Exit", nil)
-
-let miFont = iup.item("Set font...", nil)
-
-let miFind = iup.item("Find...", nil)
-let miGoTo = iup.item("Go to...", nil)
-
-let miAbout = iup.item("About...", nil)
-
-miOpen.onAction proc(h: auto): auto =
+let miOpen = iup.item("Open", nil).onAction(proc(h: auto): auto =
   let dlg = iup.fileDlg()
   dlg.set({
     "dialogType": "open",
@@ -36,11 +24,12 @@ miOpen.onAction proc(h: auto): auto =
   if dlg["status"] != -1:
     let fname = dlg["value"]
     let data = fname.readFile
-    txt["value"] = data
+    txtCtrl["value"] = data
 
   IUP_DEFAULT
+)
 
-miSaveAs.onAction proc(h: auto): auto =
+let miSaveAs = iup.item("Save as...", nil).onAction(proc(h: auto): auto =
   let dlg = iup.fileDlg()
   dlg.set({
     "dialogType": "save",
@@ -52,15 +41,28 @@ miSaveAs.onAction proc(h: auto): auto =
 
   if dlg.getInt("STATUS") != -1:
     let fname = dlg["value"]
-    let data = txt["value"]
+    let data = txtCtrl["value"]
     fname.writeFile(data)
 
   IUP_DEFAULT
+)
 
-miExit.onAction(h => IUP_CLOSE)
+let miExit = iup.item("Exit", nil).onAction(h => IUP_CLOSE)
 
-miGoTo.onAction proc(h: auto): auto =
-  let txtCtrl = h.getDialogChild("txtCtrl")
+let miFont = iup.item("Set font...", nil).onAction(proc(h: auto): auto =
+  let dlg = iup.fontDlg()
+  dlg["value"] = txtCtrl["font"].asStr
+
+  dlg.popup(IUP_CENTER, IUP_CENTER)
+  defer: dlg.destroy
+
+  if dlg["status"] != -1:
+    txtCtrl["font"] = dlg["value"].asStr
+  IUP_DEFAULT
+)
+
+let miFind = iup.item("Find...", nil)
+let miGoTo = iup.item("Go to...", nil).onAction(proc(h: auto): auto =
   let lineCount = txtCtrl["lineCount"].asInt
 
   let lbl = iup.label(nil)
@@ -102,7 +104,7 @@ miGoTo.onAction proc(h: auto): auto =
     "dialogFrame": "yes",
     "defaultEnter": okBtn,
     "defaultEsc": cancelBtn,
-    "parentDialog": miGoTo.getDialog
+    "parentDialog": h.getDialog
   })
   dlg.popup(IUP_CENTERPARENT, IUP_CENTERPARENT)
   defer: dlg.destroy
@@ -115,49 +117,30 @@ miGoTo.onAction proc(h: auto): auto =
     txtCtrl["scrollToPos"] = pos.int
 
   IUP_DEFAULT
+)
 
-miFont.onAction proc(h: auto): auto =
-  let dlg = iup.fontDlg()
-  dlg["value"] = txt["font"].asStr
+let miAbout = iup.item("About...", nil).onAction(h => (iup.message("About", "Vega was here!"); IUP_DEFAULT))
 
-  dlg.popup(IUP_CENTER, IUP_CENTER)
-  defer: dlg.destroy
+let menu = iup.menu(
+  iup.submenu("File", iup.menu(miOpen,
+                               miSaveAs,
+                               iup.separator(),
+                               miExit,
+                               nil)),
+  iup.submenu("Edit", iup.menu(miFind, miGoTo, nil)),
+  iup.submenu("Format", iup.menu(miFont, nil)),
+  iup.submenu("Help", iup.menu(miAbout, nil)) ,
+  nil
+)
 
-  if dlg["status"] != -1:
-    txt["font"] = dlg["value"].asStr
-  IUP_DEFAULT
-
-miAbout.onAction(h => (iup.message("About", "Vega was here!"); IUP_DEFAULT))
-
-let fileMenu = iup.menu(miOpen,
-                        miSaveAs,
-                        iup.separator(),
-                        miExit,
-                        nil)
-let fileSubMenu = iup.submenu("File", fileMenu)
-
-let editMenu = iup.menu(miFind, miGoTo, nil)
-let editSubMenu = iup.submenu("Edit", editMenu)
-
-let fmtMenu = iup.menu(miFont, nil)
-let fmtSubMenu = iup.submenu("Format", fmtMenu)
-
-let helpMenu = iup.menu(miAbout, nil)
-let helpSubMenu = iup.submenu("Help", helpMenu)
-
-let menu = iup.menu(fileSubMenu, editSubMenu, fmtSubMenu, helpSubMenu, nil)
-
-let vbox = iup.vbox(txt, nil)
-let dlg = iup.dialog(vbox)
-dlg["menu"] = menu
-dlg.set({
+let vbox = iup.vbox(txtCtrl, nil)
+let dlg = iup.dialog(vbox).set({
+  "menu": menu,
   "title": "Simple Notepad",
   "size": "QUARTERxQUARTER"
 })
-
 dlg.showXY(IUP_CENTER, IUP_CENTER)
-dlg["userSize"] = nil.cstring
-
+dlg["userSize"] = nil.pointer
 iup.mainLoop()
 
 iup.close()

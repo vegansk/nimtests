@@ -41,19 +41,23 @@ converter asPtr*(v: IupAttrVal): pointer =
 converter asHandle*(v: IupAttrVal): PIhandle =
   v.h.getAttributeHandle(v.n)
 
-proc `[]=`*(h: PIhandle, name: string, v: string) =
+proc `[]=`*(h: PIhandle, name: string, v: string): PIhandle {.discardable.} =
   h.storeAttribute(name.toUpper, v)
+  h
 
-proc `[]=`*(h: PIhandle, name: string, v: int) =
+proc `[]=`*(h: PIhandle, name: string, v: int): PIhandle {.discardable.}=
   h.setInt(name.toUpper, v.cint)
+  h
 
-proc `[]=`*(h: PIhandle, name: string, v: pointer) =
+proc `[]=`*(h: PIhandle, name: string, v: pointer): PIhandle {.discardable.} =
   h.setAttribute(name.toUpper, cast[cstring](v))
+  h
 
-proc `[]=`*(h: PIhandle, name: string, v: PIhandle) =
+proc `[]=`*(h: PIhandle, name: string, v: PIhandle): PIhandle {.discardable.} =
   h.setAttributeHandle(name.toUpper, v)
+  h
 
-macro set*(h: PIhandle, data: expr): stmt =
+macro set*(h: PIhandle, data: expr): expr =
   expectKind data, nnkTableConstr
   result = newStmtList()
   let lval = genSym(nskLet)
@@ -104,7 +108,7 @@ macro genAction(action: static[string]): stmt =
   let a = action
   let n = ("on" & a.capitalize).newIdentNode
   result = quote do:
-    proc `n`*(h: PIhandle, cb: IupCb) =
+    proc `n`*(h: PIhandle, cb: IupCb): PIhandle {.discardable.} =
       var b = h.getBinding
       b.cbs.addCb(`a`, cb)
 
@@ -117,5 +121,6 @@ macro genAction(action: static[string]): stmt =
         return res
 
       h.setCallback(`a`.toUpper, callbackF)
+      h
 
 genAction "Action"
