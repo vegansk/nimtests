@@ -56,7 +56,6 @@ proc `[]=`*(h: PIhandle, name: string, v: pointer): PIhandle {.discardable.} =
 proc `[]=`*(h: PIhandle, name: string, v: PIhandle): PIhandle {.discardable.} =
   h.setAttributeHandle(name.toUpper, v)
   h
-
 macro set*(h: PIhandle, data: expr): expr =
   expectKind data, nnkTableConstr
   result = newStmtList()

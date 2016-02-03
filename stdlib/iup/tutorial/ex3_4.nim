@@ -7,7 +7,8 @@ discard iup.open(nil, nil)
 
 let txtCtrl = iup.text(nil).set({
   "multiLine": "yes",
-  "expand": "yes",
+  "expand": "yes"
+}).set({
   "name": "txtCtrl"
 })
 
