@@ -1,5 +1,7 @@
 import threadpool 
 
+{.experimental.}
+
 proc test {.exportc.} =
   echo "Hello from Nim!"
 
@@ -25,13 +27,15 @@ proc deinitLib {.exportc.} =
 proc sendMsg(msg: cstring) {.exportc.} =
   ch.send($msg)
 
-proc doSomeActionImpl(s: string): string =
-  result = newStringOfCap(s.len)
+proc doSomeActionImpl(cs: cstring, buff: cstring, buffLen: cint) =
+  let s = $cs
+  var res = newStringOfCap(s.len)
   for i in 0..high(s):
-    result.add(s[^(i + 1)])
-
-proc doSomeAction(s: cstring, buff: cstring, buffLen: cint) {.exportc.} =
-  let res = ^spawn doSomeActionImpl($s)
+    res.add(s[^(i + 1)])
   let length = min(buffLen.int - 1, res.len + 1)
   copyMem(buff, res.cstring, length)
   cast[ptr char](cast[ByteAddress](buff) +% length -% 1)[] = 0.char
+
+proc doSomeAction(s: cstring, buff: cstring, buffLen: cint) {.exportc.} =
+  parallel:
+    spawn doSomeActionImpl(s, buff, buffLen)
