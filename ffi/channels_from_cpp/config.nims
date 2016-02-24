@@ -17,7 +17,7 @@ task build, "Build the app":
   if not dirExists("bin"):
     mkdir "bin"
   let addParams = when defined(windows): "lib.lib -pthread" else: "liblib.a -pthread -ldl"
-  exec CC & " -o bin/test -I. main.cpp " & addParams
+  exec CC & " -Wno-write-strings -o bin/test -I. main.cpp " & addParams
   setCommand "nop"
 
 task run, "Run the app":
