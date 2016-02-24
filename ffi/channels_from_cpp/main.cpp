@@ -15,6 +15,12 @@ int main(int argc, char *argv[]) {
   sendMsg("C++ sends the message to Nim's actor");
   sendMsg("C++ sends another message to Nim's actor");
 
+  char* s = "abcdef";
+  char rs[100];
+  doSomeAction(s, rs, 100);
+
+  std::cout << "Reverted \"" << s << "\" is \"" << rs << "\"" << std::endl;
+
   deinitLib();
   
   return 0;
