@@ -8,7 +8,7 @@ task build_lib, "Build the lib":
   --noMain
   --header
   --threads:on
-  --tlsEmulation:off
+  --tlsEmulation:on
 
   setCommand "c", "lib.nim"
 
