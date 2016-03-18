@@ -9,6 +9,8 @@ task build_lib, "Build the lib":
   --header
   --threads:on
   --tlsEmulation:on
+  --debugger:native
+  --d:debug
 
   setCommand "c", "lib.nim"
 
@@ -17,7 +19,7 @@ task build, "Build the app":
   if not dirExists("bin"):
     mkdir "bin"
   let addParams = when defined(windows): "lib.lib -pthread" else: "liblib.a -pthread -ldl"
-  exec CC & " -Wno-write-strings -o bin/test -I. main.cpp " & addParams
+  exec CC & " -Wno-write-strings -g -std=c++11 -o bin/test -I. main.cpp " & addParams
   setCommand "nop"
 
 task run, "Run the app":
