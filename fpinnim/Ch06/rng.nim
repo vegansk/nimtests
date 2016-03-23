@@ -111,6 +111,19 @@ proc randInts(c: int): Rand[List[int]] =
   let lst = lc[randInt() | (x <- 1..c), Rand[int]].asList
   lst.sequence
 
+# Ex. 6.8
+proc flatMap[A,B](f: Rand[A], g: A -> Rand[B]): Rand[B] =
+  (rng: RNG) => (
+    let (a, rng2) = f(rng);
+    let g1 = g(a);
+    g1(rng2)
+  )
+
+# Ex. 6.9
+proc mapViaFlatMap[A,B](s: Rand[A], f: A -> B): Rand[B] =
+  let g: A -> Rand[B] = (a: A) => ((rng: RNG) => (f(a), rng))
+  flatMap(s, g)
+
 when isMainModule:
   let rng = initRNG(100)
   # Ex. 6.1
@@ -133,4 +146,7 @@ when isMainModule:
   # Ex. 6.7
   let lst: List[Rand[(int, double)]] = [randIntDouble(), randIntDouble(), randIntDouble()].asList
   echo sequence(lst)(rng)[0]
-  echo randInts(10)(rng)[0]
+  echo randInts(10)(rng)[0] 
+  # Ex. 6.9
+  let f = nextNonNegativeInt.mapViaFlatMap(i => i - i mod 2)
+  
