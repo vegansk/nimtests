@@ -7,6 +7,12 @@ proc toJson*(v: int): JsonNode =
 proc toJson*(v: string): JsonNode =
   v.newJString
 
+proc fromJson(t = int, v: JsonNode): int =
+  v.getNum.int 
+
+proc fromJson(t = string, v: JsonNode): string =
+  v.getStr
+
 type
   Fields = seq[tuple[n: string, t: string]]
 
@@ -30,7 +36,6 @@ proc getFields[T](): Fields {.compileTime.} =
   f
 
 macro toJsonObj(v: expr, fields: static[Fields]): expr =
-
   result = newNimNode(nnkStmtListExpr)
   let res = ident"res"
   result.add quote do:
@@ -42,7 +47,20 @@ macro toJsonObj(v: expr, fields: static[Fields]): expr =
       `res`[`nameS`] = `v`.`nameN`.toJson
   result.add(res)
 
+macro fromJsonObj[T](t: typedesc, v: var T, n: JsonNode, fields: static[Fields]): stmt =
+  result = newStmtList()
+  for f in fields:
+    let nameS = f.n
+    let nameN = f.n.ident
+    let typeN = f.t.ident
+    result.add quote do:
+      `v`.`nameN` = fromJson(`typeN`, `n`[`nameS`])
+
 # Default implementation for objects
 proc toJson*[T: object](v: T): JsonNode =
   const f = getFields[T]()
   toJsonObj(v, f)
+
+proc fromJson*[T: object](t: typedesc[T], v: JsonNode): T =
+  const f = getFields[T]()
+  fromJsonObj(t, result, v, f) 
