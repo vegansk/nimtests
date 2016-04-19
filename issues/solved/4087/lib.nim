@@ -7,10 +7,10 @@ proc toJson*(v: int): JsonNode =
 proc toJson*(v: string): JsonNode =
   v.newJString
 
-proc fromJson(t = int, v: JsonNode): int =
+proc fromJson*(t = int, v: JsonNode): int =
   v.getNum.int 
 
-proc fromJson(t = string, v: JsonNode): string =
+proc fromJson*(t = string, v: JsonNode): string =
   v.getStr
 
 type
@@ -52,9 +52,8 @@ macro fromJsonObj[T](t: typedesc, v: var T, n: JsonNode, fields: static[Fields])
   for f in fields:
     let nameS = f.n
     let nameN = f.n.ident
-    let typeN = f.t.ident
     result.add quote do:
-      `v`.`nameN` = fromJson(`typeN`, `n`[`nameS`])
+      `v`.`nameN` = fromJson(type(`v`.`nameN`), `n`[`nameS`])
 
 # Default implementation for objects
 proc toJson*[T: object](v: T): JsonNode =
