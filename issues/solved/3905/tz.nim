@@ -1,0 +1,3 @@
+import times
+
+echo getTimezone()
