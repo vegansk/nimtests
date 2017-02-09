@@ -10,7 +10,7 @@ type
   TestType = enum AsyncClient, SyncClient, DeprecatedAPI, ApacheBenchmark
 
 const port = Port(8888)
-const testType = SyncClient
+const testType = DeprecatedAPI
 const requestsTotal = 1000
 const maxAsyncRequests = 10
 const postBody = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
@@ -22,18 +22,20 @@ proc serverThread {.thread.} =
 
   waitFor serve(server, port, cb)
 
-template clientTestBody: untyped =
+proc runAsyncTest(c: AsyncHttpClient, requests: int): Future[void] {.async.} =
+  for _ in 1..requests:
+    asyncCheck c.postContent("http://localhost:" & $port, postBody)
+
+proc runSyncTest(requests: int) =
   when testType notin {DeprecatedAPI, ApacheBenchmark}:
-    let c = when testType == AsyncClient: newAsyncHttpClient() else: newHttpClient()
+    let c = newHttpClient()
   when testType != ApacheBenchmark:
     for _ in 1..requests:
-      when testType == AsyncClient:
-        asyncCheck c.postContent("http://localhost:" & $port, postBody)
-      elif testType == SyncClient:
+      when testType == SyncClient:
         discard c.postContent("http://localhost:" & $port, postBody)
       else:
         discard postContent("http://localhost:" & $port, postBody)
-    when testType in{AsyncClient, SyncClient}:
+    when testType == SyncClient:
       c.close
   else:
     let file = getTempDir() / "httpclient.test"
@@ -44,22 +46,17 @@ template clientTestBody: untyped =
     echo "AB command: ", cmd
     discard execCmd(cmd)
 
-when testType == AsyncClient:
-  proc runClientTest(requests: int): Future[void] {.async.} =
-    clientTestBody
-else:
-  proc runClientTest(requests: int): void =
-    clientTestBody
-
 proc main() =
   var server: Thread[void]
   createThread(server, serverThread)
   let t = getTime()
   when testType == AsyncClient:
     for i in 1..(requestsTotal div maxAsyncRequests):
-      waitFor runClientTest(maxAsyncRequests)
+      let c = newAsyncHttpClient()
+      waitFor runAsyncTest(c, maxAsyncRequests)
+      c.close
   else:
-    runClientTest(requestsTotal)
+    runSyncTest(requestsTotal)
 
   echo "TEST[", testType, "]: Processed ", requestsTotal, " requests in ", getTime() - t, " seconds!"
 
