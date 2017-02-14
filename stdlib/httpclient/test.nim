@@ -7,10 +7,10 @@ import asynchttpserver,
        times
 
 type
-  TestType = enum AsyncClient, SyncClient, DeprecatedAPI, ApacheBenchmark
+  TestType = enum SyncClient, DeprecatedAPI, ApacheBenchmark
 
 const port = Port(8888)
-const testType = DeprecatedAPI
+const testType = SyncClient
 const requestsTotal = 1000
 const maxAsyncRequests = 10
 const postBody = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
@@ -22,12 +22,8 @@ proc serverThread {.thread.} =
 
   waitFor serve(server, port, cb)
 
-proc runAsyncTest(c: AsyncHttpClient, requests: int): Future[void] {.async.} =
-  for _ in 1..requests:
-    asyncCheck c.postContent("http://localhost:" & $port, postBody)
-
 proc runSyncTest(requests: int) =
-  when testType notin {DeprecatedAPI, ApacheBenchmark}:
+  when testType == SyncClient:
     let c = newHttpClient()
   when testType != ApacheBenchmark:
     for _ in 1..requests:
@@ -50,13 +46,7 @@ proc main() =
   var server: Thread[void]
   createThread(server, serverThread)
   let t = getTime()
-  when testType == AsyncClient:
-    for i in 1..(requestsTotal div maxAsyncRequests):
-      let c = newAsyncHttpClient()
-      waitFor runAsyncTest(c, maxAsyncRequests)
-      c.close
-  else:
-    runSyncTest(requestsTotal)
+  runSyncTest(requestsTotal)
 
   echo "TEST[", testType, "]: Processed ", requestsTotal, " requests in ", getTime() - t, " seconds!"
 
