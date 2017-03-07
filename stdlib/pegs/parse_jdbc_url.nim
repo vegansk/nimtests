@@ -1,4 +1,4 @@
-import pegs
+import pegs, sequtils
 
 template massert(a, b, body: untyped): untyped =
   if a =~ b:
@@ -15,11 +15,11 @@ dbtype <- 'postgresql'
 """
 
   massert "jdbc:postgresql:testdb", parser:
-    echo @matches
+    echo @matches.filterIt(not it.isNil)
   massert "jdbc:postgresql://server/testdb", parser:
-    echo @matches
+    echo @matches.filterIt(not it.isNil)
   massert "jdbc:postgresql://server:5432/testdb", parser:
-    echo @matches
+    echo @matches.filterIt(not it.isNil)
   assert: not("badurl" =~ parser)
 
 when isMainModule:
