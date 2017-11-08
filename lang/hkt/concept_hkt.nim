@@ -1,26 +1,21 @@
-import macros
+import future, typetraits
 
-macro getParamType(f: typed, i: static[int]): typed =
-  expectKind f, {nnkCall, nnkBracketExpr}
-  expectMinLen f, 1
-  echo f.getType().treeRepr
-  echo f[0].treeRepr
-  result = macros.newStmtList()
+type X[T] = concept x
+  type U = auto
+  map(x, T -> U): genericHead(x.type)[U]
 
-type
-  Array[T] = concept a
-    a.len is Ordinal
-    a[int] is T
+type Box[T] = object
+  v: T
 
-  # Map[K, V, Storage: Array[_,int]] = object
-  #   keys: Storage[K]
-  #   values: Storage[V]
-    
-    
-var x = @[1,2,3]
+proc map[T,U](x: Box[T], f: T -> U): Box[U] =
+  result.v = f(x.v)
 
-echo x is Array[int]
-echo seq[int] is Array[int]
+echo Box[int] is X[int]
 
-getParamType(x.len, 0)
-getParamType(x[0], 0)
+# type
+#   Functor{.explain.}[T] = concept f, type F
+#     type U = auto
+#     map(f, T -> U) is F[U]
+
+# import options
+# echo Option[int] is Functor[int]
